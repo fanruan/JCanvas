@@ -1,17 +1,24 @@
 package com.fr.canvas;
 
+import com.fr.stable.StringUtils;
+
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.io.File;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 public class ContextAdapter {
 
-    private static final double FULL_RADIAN = Math.PI * 2;
+    public static final int MISMATCH = -1;
 
     private Graphics2D context;
 
@@ -25,14 +32,35 @@ public class ContextAdapter {
 
     private Paint strokePaint;
 
+    private TextAlignAdapter textAlign;
+
+    private TextBaselineAdapter textBaseline;
+
     public ContextAdapter(Graphics2D context, BufferedImage canvas) {
         this.canvas = canvas;
         this.context = context;
+        this.fillPaint = Color.BLACK;
+        this.strokePaint = Color.BLACK;
         path = new Path2D.Double();
     }
 
-    public void setFillStyle(Color color) {
-        context.setColor(color);
+    public void setFillStyle(String fillStyle) {
+        setStyle(fillStyle, true);
+    }
+
+    public void setStrokeStyle(String strokeStyle) {
+        setStyle(strokeStyle, false);
+    }
+
+    private void setStyle(String style, boolean isFill) {
+        Paint paint = ColorsAdapter.parsePaint(style);
+        if (paint != null) {
+            if (isFill) {
+                fillPaint = paint;
+            } else {
+                strokePaint = paint;
+            }
+        }
     }
 
     public LinearGradientAdapter createLinearGradient(double x0, double y0, double x1, double y1) {
@@ -64,11 +92,13 @@ public class ContextAdapter {
     }
 
     public void strokeRect(double x, double y, double w, double h) {
+        beforeStroke();
         Rectangle2D rec = new Rectangle2D.Double(x, y, w, h);
         context.draw(rec);
     }
 
     public void fillRect(double x, double y, double w, double h) {
+        beforeFill();
         Rectangle2D rec = new Rectangle2D.Double(x, y, w, h);
         context.fill(rec);
     }
@@ -89,7 +119,7 @@ public class ContextAdapter {
     }
 
     public void arc(double x, double y, double r, double startRadian, double endRadian, boolean counterclockwise) {
-        Arc2D arc = new Arc2D.Double(x - r, y - r, 2 * r, 2 * r, toArc2DAngle(startRadian), toArc2DLength(startRadian, endRadian, counterclockwise), Arc2D.OPEN);
+        Arc2D arc = new Arc2D.Double(x - r, y - r, 2 * r, 2 * r, CanvasUtils.toArc2DAngle(startRadian), CanvasUtils.toArc2DLength(startRadian, endRadian, counterclockwise), Arc2D.OPEN);
         path.append(arc, true);
         moved = true;
     }
@@ -126,12 +156,14 @@ public class ContextAdapter {
 
     public void stroke() {
         if (moved) {
+            beforeStroke();
             context.draw(path);
         }
     }
 
     public void fill() {
         if (moved) {
+            beforeFill();
             context.fill(path);
         }
     }
@@ -142,7 +174,7 @@ public class ContextAdapter {
 
     public void setLineCap(String lineCap) {
         int cap = LineCapAdapter.parse(lineCap);
-        if (cap >= 0) {
+        if (cap != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
             context.setStroke(new BasicStroke(stroke.getLineWidth(), cap, stroke.getLineJoin(), stroke.getMiterLimit()));
         }
@@ -150,7 +182,7 @@ public class ContextAdapter {
 
     public void setLineJoin(String lineJoin) {
         int join = LineJoinAdapter.parse(lineJoin);
-        if (join >= 0) {
+        if (join != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
             context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), join, stroke.getMiterLimit()));
         }
@@ -191,9 +223,23 @@ public class ContextAdapter {
         context.setTransform(new AffineTransform(mxx, myx, mxy, myy, mxt, myt));
     }
 
+    public void setFont(String font) {
+        if (!StringUtils.isEmpty(font)) {
+            context.setFont(FontAdapter.processFont(font));
+        }
+    }
+
+    public void setTextAlign(String textAlign) {
+        this.textAlign = TextAlignAdapter.get(textAlign);
+    }
+
+    public void setTextBaseline(String textBaseline) {
+        this.textBaseline = TextBaselineAdapter.get(textBaseline);
+    }
+
     public void setGlobalCompositeOperation(String rule) {
         int compositeRule = CompositeAdapter.parse(rule);
-        if (compositeRule >= 0) {
+        if (compositeRule != MISMATCH) {
             AlphaComposite composite = (AlphaComposite) context.getComposite();
             context.setComposite(AlphaComposite.getInstance(compositeRule, composite.getAlpha()));
         }
@@ -276,57 +322,6 @@ public class ContextAdapter {
         }
     }
 
-    private double toArc2DAngle(double radian) {
-
-        //0和360是重合的
-        if (Double.compare(Math.abs(radian), 0) == 0 || Double.compare(Math.abs(radian), FULL_RADIAN) == 0) {
-            return Math.toDegrees(radian);
-        }
-
-        radian = radian % FULL_RADIAN;
-
-        radian = radian < 0 ? -radian - FULL_RADIAN : FULL_RADIAN - radian;
-
-        return Math.toDegrees(radian);
-    }
-
-    private double toArc2DLength(double startRadian, double endRadian, boolean counterclockwise) {
-
-        double length = Math.abs(endRadian - startRadian);
-
-        if (Double.compare(length, 0) == 1 && Double.compare(length, FULL_RADIAN) < 0) {
-
-            startRadian = startRadian % FULL_RADIAN;
-            endRadian = endRadian % FULL_RADIAN;
-
-            if (startRadian < 0) {
-                startRadian += FULL_RADIAN;
-            }
-            if (endRadian < 0) {
-                endRadian += FULL_RADIAN;
-            }
-            if (Double.compare(startRadian, endRadian) == 0) {
-                length = FULL_RADIAN;
-            } else {
-                length = Math.abs(endRadian - startRadian);
-
-                if (!(endRadian > startRadian ^ counterclockwise)) {
-                    length = FULL_RADIAN - length;
-                }
-            }
-        }
-        return Math.toDegrees(counterclockwise ? length : -length);
-    }
-
-    private int[] intColorToRGBA(int argb) {
-        int a = argb >>> 24;
-        int r = argb >> 16 & 255;
-        int g = argb >> 8 & 255;
-        int b = argb & 255;
-
-        return new int[]{r, g, b, a};
-    }
-
     private ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {
         if (width < 0) {
             x = x + width;
@@ -344,7 +339,7 @@ public class ContextAdapter {
         for (int j = minY; j < boundY; j++) {
             for (int i = minX; i < boundX; i++) {
                 int k = ((j - y) * width + (i - x)) * 4;
-                int[] rgba = intColorToRGBA(img.getRGB(i, j));
+                int[] rgba = CanvasUtils.intColorToRGBA(img.getRGB(i, j));
                 data[k] = rgba[0];
                 data[k + 1] = rgba[1];
                 data[k + 2] = rgba[2];
@@ -354,7 +349,7 @@ public class ContextAdapter {
         return new ImageData(width, height, data);
     }
 
-    public void putImageData(BufferedImage img, ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+    private void putImageData(BufferedImage img, ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
         int minX = Math.max(x, 0);
         int minY = Math.max(y, 0);
         int boundX = Math.min(x + imageData.getWidth(), img.getWidth());
@@ -390,5 +385,13 @@ public class ContextAdapter {
                 img.setRGB(i, j, color);
             }
         }
+    }
+
+    private void beforeFill() {
+        context.setPaint(fillPaint);
+    }
+
+    private void beforeStroke() {
+        context.setPaint(strokePaint);
     }
 }

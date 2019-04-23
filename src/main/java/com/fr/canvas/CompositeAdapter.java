@@ -1,9 +1,9 @@
 package com.fr.canvas;
 
-import java.awt.*;
+import java.awt.AlphaComposite;
 
 public enum CompositeAdapter {
-    SRC_OVER("source-over",AlphaComposite.SRC_OVER),
+    SRC_OVER("source-over", AlphaComposite.SRC_OVER),
     SRC_ATOP("source-atop", AlphaComposite.SRC_ATOP),
     DST_OVER("destination-over", AlphaComposite.DST_OVER),
     DST_OUT("destination-out", AlphaComposite.DST_OUT),
@@ -35,6 +35,6 @@ public enum CompositeAdapter {
             }
         }
 
-        return -1;
+        return ContextAdapter.MISMATCH;
     }
 }

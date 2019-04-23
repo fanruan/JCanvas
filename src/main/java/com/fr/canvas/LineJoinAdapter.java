@@ -1,6 +1,7 @@
 package com.fr.canvas;
 
-import java.awt.*;
+
+import java.awt.BasicStroke;
 
 public enum LineJoinAdapter {
 
@@ -34,6 +35,6 @@ public enum LineJoinAdapter {
             }
         }
 
-        return -1;
+        return ContextAdapter.MISMATCH;
     }
 }

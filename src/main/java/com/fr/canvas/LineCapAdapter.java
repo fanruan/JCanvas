@@ -1,6 +1,7 @@
 package com.fr.canvas;
 
-import java.awt.*;
+
+import java.awt.BasicStroke;
 
 public enum LineCapAdapter {
 
@@ -11,6 +12,8 @@ public enum LineCapAdapter {
     private String type;
 
     private int capType;
+
+    private
 
     LineCapAdapter(String type, int capType){
         this.type = type;
@@ -32,6 +35,6 @@ public enum LineCapAdapter {
                 return lineCap.capType;
             }
         }
-        return -1;
+        return ContextAdapter.MISMATCH;
     }
 }

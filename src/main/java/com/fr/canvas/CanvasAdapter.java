@@ -1,7 +1,8 @@
 package com.fr.canvas;
 
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class CanvasAdapter {
@@ -14,8 +15,8 @@ public class CanvasAdapter {
         this(200, 200);
     }
 
-    public CanvasAdapter(double width, double height) {
-        this.canvas = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_ARGB);
+    public CanvasAdapter(int width, int height) {
+        this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
 
     public double getWidth() {
@@ -26,15 +27,15 @@ public class CanvasAdapter {
         return canvas.getHeight();
     }
 
-    public void setWidth(double width) {
+    public void setWidth(int width) {
         int height = canvas.getHeight();
-        canvas = new BufferedImage((int) width, height, BufferedImage.TYPE_INT_RGB);
+        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         initContextAdapter();
     }
 
-    public void setHeight(double height) {
+    public void setHeight(int height) {
         int width = canvas.getWidth();
-        canvas = new BufferedImage(width, (int) height, BufferedImage.TYPE_INT_RGB);
+        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         initContextAdapter();
     }
 
@@ -54,8 +55,8 @@ public class CanvasAdapter {
     }
 
     public void initContextAdapter() {
-        Graphics2D context = (Graphics2D) canvas.getGraphics();
-        context.setBackground(new Color(0,0,0,0));
+        java.awt.Graphics2D context = (java.awt.Graphics2D) canvas.getGraphics();
+        context.setBackground(ColorsAdapter.TRANSPARENT);
         context.setColor(Color.BLACK); //默认绘图颜色设置为黑色
         //默认的线条样式改变
         context.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f));

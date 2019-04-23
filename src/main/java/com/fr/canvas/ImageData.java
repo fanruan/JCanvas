@@ -1,5 +1,9 @@
 package com.fr.canvas;
 
+import com.fr.stable.AssistUtils;
+
+import java.util.Arrays;
+
 public class ImageData {
     private int width;
 
@@ -49,12 +53,25 @@ public class ImageData {
                     + "must begin with \"" + start + '"' + " and end with \"" + end + '"');
         }
         value = value.substring(start.length(), value.length() - end.length());
-        String[] attribute = value.split("\\|");
-        String[] dataString = attribute[2].split(",");
+        String[] attributes = value.split("\\|");
+        String[] dataString = attributes[2].split(",");
         int[] data = new int[dataString.length];
         for (int i = 0; i < dataString.length; i++) {
             data[i] = Integer.parseInt(dataString[i]);
         }
-        return new ImageData(Integer.parseInt(attribute[0]), Integer.parseInt(attribute[1]), data);
+        return new ImageData(Integer.parseInt(attributes[0]), Integer.parseInt(attributes[1]), data);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ImageData
+                && AssistUtils.equals(this.width, ((ImageData) obj).width)
+                && AssistUtils.equals(this.height, ((ImageData) obj).height)
+                && Arrays.equals(this.data, ((ImageData) obj).data);
+    }
+
+    @Override
+    public int hashCode() {
+        return AssistUtils.hashCode(width, height, data);
     }
 }

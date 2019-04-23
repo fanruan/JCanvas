@@ -1,9 +1,11 @@
 package com.fr.canvas;
 
-import java.awt.*;
+import com.fr.stable.AssistUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.awt.Color;
 
 public class Stop {
 
@@ -15,7 +17,8 @@ public class Stop {
 
     private double offset;
 
-    public Stop(double offset, Color color) {
+    public static final float ACCURACY = 0.000001f;
+    public Stop(double offset, java.awt.Color color) {
         this.offset = offset;
         this.color = color;
     }
@@ -28,7 +31,7 @@ public class Stop {
         return offset;
     }
 
-    static List<Stop> normalize(List<Stop> stops) {
+    public static List<Stop> normalize(List<Stop> stops) {
         if (stops == null) {
             return NO_STOP;
         }
@@ -45,8 +48,11 @@ public class Stop {
                     Stop s2 = newList.get(i);
                     if (s2.getOffset() <= off) {
                         if (s2.getOffset() == off) {
-                            if (i > 0 && newList.get(i - 1).getOffset() == off) {
+                            if ((i > 0 && newList.get(i - 1).getOffset() == off) || off == 0.0) {
                                 newList.set(i, s);
+                            } else if (off == 1.0) {
+                                s = null;
+                                break;
                             } else {
                                 newList.add(i + 1, s);
                             }
@@ -71,8 +77,32 @@ public class Stop {
         return newList;
     }
 
+    public static void transStops(List<Stop> stops, List<Color> colors, List<Float> fractions) {
+        stops = Stop.normalize(stops);
+        for (int i = 0; i < stops.size(); i++) {
+            colors.add(stops.get(i).getColor());
+            float offset = (float) stops.get(i).getOffset();
+            if (i > 1 && offset == fractions.get(i-1)) {
+                offset += ACCURACY;
+            }
+            fractions.add(offset);
+        }
+    }
+
     @Override
-    public String toString(){
+    public String toString() {
         return offset + "&" + color.getRGB();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Stop
+                && AssistUtils.equals(this.offset, ((Stop)obj).offset)
+                && AssistUtils.equals(this.color, ((Stop) obj).color);
+    }
+
+    @Override
+    public int hashCode() {
+        return AssistUtils.hashCode(offset, color);
     }
 }
