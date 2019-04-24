@@ -13,8 +13,6 @@ public enum LineCapAdapter {
 
     private int capType;
 
-    private
-
     LineCapAdapter(String type, int capType){
         this.type = type;
         this.capType = capType;

@@ -20,7 +20,7 @@ public class FontAdapter {
     public static Map<String, Font> fontMap = new ConcurrentHashMap<String, Font>();
 
     static {
-        fontStyle = new HashMap<>();
+        fontStyle = new HashMap<String, Integer>();
 
         fontStyle.put(BOLD, new Integer(Font.BOLD));
         fontStyle.put(OBLIQUE, new Integer(Font.ITALIC));

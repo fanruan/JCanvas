@@ -23,8 +23,8 @@ public class LinearGradientAdapter {
 
     public void addColorStop(double offset, String color) {
         try{
-            java.awt.Color c = ColorsAdapter.web(color);
-            stops.add(new Stop(offset, ColorsAdapter.web(color)));
+            Color c = ColorsAdapter.web(color);
+            stops.add(new Stop(offset, c));
         } catch (Exception ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
         }
@@ -63,13 +63,13 @@ public class LinearGradientAdapter {
         float y0 = Float.parseFloat(attributes[1]);
         float x1 = Float.parseFloat(attributes[2]);
         float y1 = Float.parseFloat(attributes[3]);
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         for (String s : attributes[4].split(",")) {
             String[] stop = s.split("&");
             stops.add(new Stop(Double.parseDouble(stop[0]), new Color(Integer.parseInt(stop[1]), true)));
         }
-        List<Float> fractions = new ArrayList<>();
-        List<Color> colors = new ArrayList<>();
+        List<Float> fractions = new ArrayList<Float>();
+        List<Color> colors = new ArrayList<Color>();
         //将stops转换为LinearGradientPaint的构造函数入参
         Stop.transStops(stops, colors, fractions);
         float[] floats = new float[fractions.size()];

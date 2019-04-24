@@ -12,7 +12,7 @@ public enum TextBaselineAdapter {
     public static Map<String, TextBaselineAdapter> textBaselineMap;
 
     static {
-        textBaselineMap = new HashMap<>();
+        textBaselineMap = new HashMap<String,TextBaselineAdapter>();
         textBaselineMap.put("alphabetic", BOTTOM);
         textBaselineMap .put("top", TOP);
         textBaselineMap.put("hanging", TOP);

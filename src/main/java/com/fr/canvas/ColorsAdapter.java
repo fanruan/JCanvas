@@ -56,7 +56,8 @@ public class ColorsAdapter {
                 return new Color(r, g, b, a);
             }
         } catch (Exception ex) {
-            throw ex;
+            FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
+            return null;
         }
         throw new IllegalArgumentException("Invalid color specification");
     }
@@ -76,7 +77,8 @@ public class ColorsAdapter {
                 }
                 return new Color((float) r, (float) g, (float) b, (float) a);
             } catch (Exception ex) {
-                throw ex;
+                FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
+                return null;
             }
         }
         throw new IllegalArgumentException("Invalid color specification");
@@ -97,7 +99,8 @@ public class ColorsAdapter {
                 h = h / 360;
                 return hsla2Rgba(h, s, l, a);
             } catch (Exception ex) {
-                throw ex;
+                FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
+                return null;
             }
         }
         throw new IllegalArgumentException("Invalid color specification");

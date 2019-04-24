@@ -27,7 +27,7 @@ public class RadialGradientAdapter {
     public void addColorStop(double offset, String color) {
         try{
             Color c = ColorsAdapter.web(color);
-            stops.add(new Stop(offset, ColorsAdapter.web(color)));
+            stops.add(new Stop(offset, c));
         } catch (Exception ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
         }
@@ -68,13 +68,13 @@ public class RadialGradientAdapter {
         float x1 = Float.parseFloat(attributes[3]);
         float y1 = Float.parseFloat(attributes[4]);
         float r1 = Float.parseFloat(attributes[5]);
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         for (String s : attributes[6].split(",")) {
             String[] stop = s.split("&");
             stops.add(new Stop(Double.parseDouble(stop[0]), new Color(Integer.parseInt(stop[1]), true)));
         }
-        List<Float> fractions = new ArrayList<>();
-        List<Color> colors = new ArrayList<>();
+        List<Float> fractions = new ArrayList<Float>();
+        List<Color> colors = new ArrayList<Color>();
         //将stops转换为LinearGradientPaint的构造函数入参
         Stop.transStops(stops, colors, fractions);
         float[] floats = new float[fractions.size()];

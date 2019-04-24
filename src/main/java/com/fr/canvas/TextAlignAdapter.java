@@ -12,7 +12,7 @@ public enum TextAlignAdapter {
     public static Map<String, TextAlignAdapter> textAlignMap;
 
     static {
-        textAlignMap = new HashMap<>();
+        textAlignMap = new HashMap<String,TextAlignAdapter>();
         textAlignMap.put("start", LEFT);
         textAlignMap.put("end", RIGHT);
         textAlignMap.put("left", LEFT);
