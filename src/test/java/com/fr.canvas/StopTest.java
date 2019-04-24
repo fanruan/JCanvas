@@ -10,7 +10,7 @@ import java.awt.Color;
 public class StopTest extends TestCase {
 
     public void testNormalize1() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops.add(new Stop(0.5, Color.WHITE));
         stops = Stop.normalize(stops);
         assertEquals(stops.size(), 2);
@@ -19,7 +19,7 @@ public class StopTest extends TestCase {
     }
 
     public void testNormalize2() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops.add(new Stop(0.5, Color.WHITE));
         stops.add(new Stop(0.7, Color.BLACK));
         stops.add(new Stop(0.8, null));
@@ -32,7 +32,7 @@ public class StopTest extends TestCase {
     }
 
     public void testNormalize3() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops.add(new Stop(0.7, Color.BLACK));
         stops.add(new Stop(0.5, Color.WHITE));
         stops.add(new Stop(0.7, Color.RED));
@@ -45,7 +45,7 @@ public class StopTest extends TestCase {
     }
 
     public void testNormalize4() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops.add(new Stop(0.0, Color.BLACK));
         stops.add(new Stop(0.0, Color.WHITE));
         stops.add(new Stop(1.0, Color.RED));
@@ -57,7 +57,7 @@ public class StopTest extends TestCase {
     }
 
     public void testNormalize5() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops = Stop.normalize(stops);
         assertEquals(2, stops.size());
         assertEquals(new Stop(0.0, ColorsAdapter.TRANSPARENT), stops.get(0));
@@ -65,13 +65,13 @@ public class StopTest extends TestCase {
     }
 
     public void testTransStops() {
-        List<Stop> stops = new ArrayList<>();
+        List<Stop> stops = new ArrayList<Stop>();
         stops.add(new Stop(0.5, Color.WHITE));
         stops.add(new Stop(0.7, Color.RED));
         stops.add(new Stop(0.7, Color.BLACK));
         stops.add(new Stop(0.7, Color.BLUE));
-        List<Color> colors = new ArrayList<>();
-        List<Float> fractions = new ArrayList<>();
+        List<Color> colors = new ArrayList<Color>();
+        List<Float> fractions = new ArrayList<Float>();
         Stop.transStops(stops, colors, fractions);
         assertTrue(Arrays.equals(new Color[]{Color.WHITE, Color.RED, Color.BLUE}, colors.toArray()));
         assertTrue(Arrays.equals(new Float[]{0.5f, 0.7f, 0.700001f}, fractions.toArray()));
