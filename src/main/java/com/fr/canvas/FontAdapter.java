@@ -15,6 +15,8 @@ public class FontAdapter {
 
     public static final String OBLIQUE = "oblique";
 
+    public static final int DEFAULT_SIZE = 12;
+
     public static Map<String, Integer> fontStyle;
 
     public static Map<String, Font> fontMap = new ConcurrentHashMap<String, Font>();
@@ -33,7 +35,7 @@ public class FontAdapter {
         }
         String[] styleAndRest = font.split("\\s");
         int style = Font.PLAIN;
-        int size = 12;
+        int size = DEFAULT_SIZE;
         String name = "DIALOG";
         for (int i = 0; i < styleAndRest.length; i++) {
             String rule = styleAndRest[i];
@@ -41,7 +43,7 @@ public class FontAdapter {
                 style = style | fontStyle.get(rule.toLowerCase());
             } else if (isMetricValue(rule) || isNumericValue(rule)) {
                 size = (int) (Double.parseDouble(isMetricValue(rule) ? rule.substring(0, rule.length() - 2) : rule) + 0.5);
-                size = size < 10 ? 12 : size;
+                size = size < 0 ? DEFAULT_SIZE : size;
                 if (i != styleAndRest.length - 1) {
                     StringBuilder s = new StringBuilder();
                     for (int j = i + 1; j < styleAndRest.length; j++) {

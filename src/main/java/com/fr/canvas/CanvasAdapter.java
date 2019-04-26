@@ -3,6 +3,7 @@ package com.fr.canvas;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 public class CanvasAdapter {
@@ -58,8 +59,9 @@ public class CanvasAdapter {
         java.awt.Graphics2D context = (java.awt.Graphics2D) canvas.getGraphics();
         context.setBackground(ColorsAdapter.TRANSPARENT);
         context.setColor(Color.BLACK); //默认绘图颜色设置为黑色
+        context.setRenderingHint(RenderingHints.KEY_ANTIALIASING , RenderingHints.VALUE_ANTIALIAS_ON);
         //默认的线条样式改变
-        context.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f));
+        context.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f));
         this.contextAdapter = new ContextAdapter(context, this.canvas);
     }
 }
