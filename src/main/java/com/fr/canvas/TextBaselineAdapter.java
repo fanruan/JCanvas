@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum TextBaselineAdapter {
 
+    ALPHABETIC,
     TOP,
     BOTTOM,
     CENTER;
@@ -13,8 +14,8 @@ public enum TextBaselineAdapter {
 
     static {
         textBaselineMap = new HashMap<String,TextBaselineAdapter>();
-        textBaselineMap.put("alphabetic", BOTTOM);
-        textBaselineMap .put("top", TOP);
+        textBaselineMap.put("alphabetic", ALPHABETIC);
+        textBaselineMap.put("top", TOP);
         textBaselineMap.put("hanging", TOP);
         textBaselineMap.put("ideographic", BOTTOM);
         textBaselineMap.put("bottom", BOTTOM);

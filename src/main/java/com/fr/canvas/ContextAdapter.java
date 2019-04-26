@@ -4,12 +4,15 @@ import com.fr.stable.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.util.LinkedList;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
@@ -36,12 +39,19 @@ public class ContextAdapter {
 
     private TextBaselineAdapter textBaseline;
 
+    private LinkedList<CanvasState> stateStack;
+
+    private float[] coords = new float[6];
+
     public ContextAdapter(Graphics2D context, BufferedImage canvas) {
         this.canvas = canvas;
         this.context = context;
         this.fillPaint = Color.BLACK;
         this.strokePaint = Color.BLACK;
+        textAlign = TextAlignAdapter.LEFT;
+        textBaseline = TextBaselineAdapter.ALPHABETIC;
         path = new Path2D.Double();
+        stateStack = new LinkedList<CanvasState>();
     }
 
     public void setFillStyle(String fillStyle) {
@@ -72,7 +82,10 @@ public class ContextAdapter {
     }
 
     public void moveTo(double x, double y) {
-        path.moveTo(x, y);
+        coords[0] = (float) x;
+        coords[1] = (float) y;
+        context.getTransform().transform(coords, 0, coords, 0, 1);
+        path.moveTo(coords[0], coords[1]);
         moved = true;
     }
 
@@ -80,15 +93,18 @@ public class ContextAdapter {
         if (!moved) {
             moveTo(x, y);
         }
-        path.lineTo(x, y);
+        coords[0] = (float) x;
+        coords[1] = (float) y;
+        context.getTransform().transform(coords, 0, coords, 0, 1);
+        path.lineTo(coords[0], coords[1]);
     }
 
     public void rect(double x, double y, double w, double h) {
         moveTo(x, y);
-        path.lineTo(x + w, y);
-        path.lineTo(x + w, y + h);
-        path.lineTo(x, y + h);
-        path.closePath();
+        lineTo(x + w, y);
+        lineTo(x + w, y + h);
+        lineTo(x, y + h);
+        closePath();
     }
 
     public void strokeRect(double x, double y, double w, double h) {
@@ -120,22 +136,132 @@ public class ContextAdapter {
 
     public void arc(double x, double y, double r, double startRadian, double endRadian, boolean counterclockwise) {
         Arc2D arc = new Arc2D.Double(x - r, y - r, 2 * r, 2 * r, CanvasUtils.toArc2DAngle(startRadian), CanvasUtils.toArc2DLength(startRadian, endRadian, counterclockwise), Arc2D.OPEN);
-        path.append(arc, true);
+        path.append(arc.getPathIterator(context.getTransform()), true);
         moved = true;
     }
 
-    public void quadraticCurveTo(double xc, double yc, double x1, double y1) {
+    public void arcTo(float x1, float y1, float x2, float y2, float radius) {
         if (!moved) {
-            moveTo(xc, yc);
+            moveTo(x1, y1);
+        } else if (!tryArcTo(x1, y1, x2, y2, radius)) {
+            lineTo(x1, y1);
         }
-        path.quadTo(xc, yc, x1, y1);
+    }
+
+    public boolean tryArcTo(float x1, float y1, float x2, float y2, float radius) {
+
+        float x0, y0;
+        coords[0] = (float)path.getCurrentPoint().getX();
+        coords[1] = (float)path.getCurrentPoint().getY();
+        double[] doubleCoords = new double[]{coords[0],coords[1]};
+        try{
+            context.getTransform().inverseTransform(doubleCoords, 0, doubleCoords, 0, 1);
+        } catch (Exception e) {
+            return false;
+        }
+        x0 = (float)doubleCoords[0];
+        y0 = (float)doubleCoords[1];
+        double lsq01 = lenSq(x0, y0, x1, y1);
+        double lsq12 = lenSq(x1, y1, x2, y2);
+        double lsq02 = lenSq(x0, y0, x2, y2);
+        double len01 = Math.sqrt(lsq01);
+        double len12 = Math.sqrt(lsq12);
+        double cosnum = lsq01 + lsq12 - lsq02;
+        double cosden = 2.0 * len01 * len12;
+        if (cosden == 0.0 || radius <= 0f) {
+            return false;
+        }
+        double cos_2theta = cosnum / cosden;
+        double tansq_den = (1.0 + cos_2theta);
+        if (tansq_den == 0.0) {
+            return false;
+        }
+        double tansq_theta = (1.0 - cos_2theta) / tansq_den;
+        double A = radius / Math.sqrt(tansq_theta);
+        double tx0 = x1 + (A / len01) * (x0 - x1);
+        double ty0 = y1 + (A / len01) * (y0 - y1);
+        double tx1 = x1 + (A / len12) * (x2 - x1);
+        double ty1 = y1 + (A / len12) * (y2 - y1);
+        double mx = (tx0 + tx1) / 2.0;
+        double my = (ty0 + ty1) / 2.0;
+        double lenratioden = lenSq(mx, my, x1, y1);
+        if (lenratioden == 0.0) {
+            return false;
+        }
+        double lenratio = lenSq(mx, my, tx0, ty0) / lenratioden;
+        double cx = mx + (mx - x1) * lenratio;
+        double cy = my + (my - y1) * lenratio;
+        if (!(cx == cx && cy == cy)) {
+            return false;
+        }
+        if (tx0 != x0 || ty0 != y0) {
+            lineTo(tx0, ty0);
+        }
+        double coshalfarc = Math.sqrt((1.0 - cos_2theta) / 2.0);
+        boolean ccw = (ty0 - cy) * (tx1 - cx) > (ty1 - cy) * (tx0 - cx);
+        if (cos_2theta <= 0.0) {
+            double sinhalfarc = Math.sqrt((1.0 + cos_2theta) / 2.0);
+            double cv = 4.0 / 3.0 * sinhalfarc / (1.0 + coshalfarc);
+            if (ccw) cv = -cv;
+            double cpx0 = tx0 - cv * (ty0 - cy);
+            double cpy0 = ty0 + cv * (tx0 - cx);
+            double cpx1 = tx1 + cv * (ty1 - cy);
+            double cpy1 = ty1 - cv * (tx1 - cx);
+            bezierCurveTo(cpx0, cpy0, cpx1, cpy1, tx1, ty1);
+        } else {
+            double sinqtrarc = Math.sqrt((1.0 - coshalfarc) / 2.0);
+            double cosqtrarc = Math.sqrt((1.0 + coshalfarc) / 2.0);
+            double cv = 4.0 / 3.0 * sinqtrarc / (1.0 + cosqtrarc);
+            if (ccw) cv = -cv;
+            double midratio = radius / Math.sqrt(lenratioden);
+            double midarcx = cx + (x1 - mx) * midratio;
+            double midarcy = cy + (y1 - my) * midratio;
+            double cpx0 = tx0 - cv * (ty0 - cy);
+            double cpy0 = ty0 + cv * (tx0 - cx);
+            double cpx1 = midarcx + cv * (midarcy - cy);
+            double cpy1 = midarcy - cv * (midarcx - cx);
+            bezierCurveTo(cpx0, cpy0, cpx1, cpy1, midarcx, midarcy);
+            cpx0 = midarcx - cv * (midarcy - cy);
+            cpy0 = midarcy + cv * (midarcx - cx);
+            cpx1 = tx1 + cv * (ty1 - cy);
+            cpy1 = ty1 - cv * (tx1 - cx);
+            bezierCurveTo(cpx0, cpy0, cpx1, cpy1, tx1, ty1);
+        }
+        return true;
+    }
+
+    private static double lenSq(double x0, double y0, double x1, double y1) {
+        x1 -= x0;
+        y1 -= y0;
+        return x1 * x1 + y1 * y1;
+    }
+
+    public void quadraticCurveTo(double xc, double yc, double x1, double y1) {
+        coords[0] = (float) xc;
+        coords[1] = (float) yc;
+        coords[2] = (float) x1;
+        coords[3] = (float) y1;
+        context.getTransform().transform(coords, 0, coords, 0, 2);
+        if (!moved) {
+            path.moveTo(coords[0], coords[1]);
+            moved = true;
+        }
+        path.quadTo(coords[0], coords[1], coords[2], coords[3]);
     }
 
     public void bezierCurveTo(double xc1, double yc1, double xc2, double yc2, double x1, double y1) {
+        coords[0] = (float) xc1;
+        coords[1] = (float) yc1;
+        coords[2] = (float) xc2;
+        coords[3] = (float) yc2;
+        coords[4] = (float) x1;
+        coords[5] = (float) y1;
+        context.getTransform().transform(coords, 0, coords, 0, 3);
         if (!moved) {
-            moveTo(xc1, yc1);
+            path.moveTo(coords[0], coords[1]);
+            moved = true;
         }
-        path.curveTo(xc1, yc1, xc2, yc2, x1, y1);
+        path.curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
     }
 
     public void closePath() {
@@ -157,19 +283,33 @@ public class ContextAdapter {
     public void stroke() {
         if (moved) {
             beforeStroke();
-            context.draw(path);
+            draw(false);
         }
     }
 
     public void fill() {
         if (moved) {
             beforeFill();
-            context.fill(path);
+            draw(true);
         }
     }
 
+    private void draw(boolean isFill) {
+        AffineTransform af = context.getTransform();
+        context.setTransform(new AffineTransform());
+        if (isFill) {
+            context.fill(path);
+        } else {
+            context.draw(path);
+        }
+        context.setTransform(af);
+    }
+
     public void clip() {
+        AffineTransform af = context.getTransform();
+        context.setTransform(new AffineTransform());
         context.clip(path);
+        context.setTransform(af);
     }
 
     public void setLineCap(String lineCap) {
@@ -237,6 +377,72 @@ public class ContextAdapter {
         this.textBaseline = TextBaselineAdapter.get(textBaseline);
     }
 
+    public void fillText(String text, float x, float y) {
+        beforeFill();
+        drawText(text, x, y, true);
+    }
+
+    public void strokeText(String text, float x, float y) {
+        beforeStroke();
+        drawText(text, x, y, false);
+    }
+
+    private void drawText(String text, float x, float y, boolean isFill) {
+        if (!StringUtils.isEmpty(text)) {
+            x = calAlign(text, x);
+            y = calBaseline(y);
+            //绘制实心文字
+            if (isFill) {
+                context.drawString(text, x, y);
+            }
+            //绘制空心文字
+            else {
+                GlyphVector glyphVector = context.getFont().createGlyphVector(context.getFontMetrics().getFontRenderContext(), text);
+                Shape shape = glyphVector.getOutline(x, y);
+                context.draw(shape);
+            }
+        }
+    }
+
+    private float calAlign(String text, float x) {
+        TextMetrics TextMetrics = measureText(text);
+        switch (textAlign) {
+            case CENTER:
+                x -= TextMetrics.getWidth() / 2;
+                break;
+            case RIGHT:
+                x -= TextMetrics.getWidth();
+                break;
+            default:
+                break;
+        }
+        return x;
+    }
+
+    private float calBaseline(float y) {
+        int size = context.getFont().getSize();
+        switch (textBaseline) {
+            case TOP:
+                y += size / 4 * 3;
+                break;
+            case BOTTOM:
+                y -= size / 4;
+                break;
+            case CENTER:
+                y += size / 8 * 3;
+            default:
+                break;
+        }
+        return y;
+    }
+
+    public TextMetrics measureText(String text) {
+        if (!StringUtils.isEmpty(text)) {
+            return new TextMetrics(context.getFontMetrics().stringWidth(text));
+        }
+        return new TextMetrics(0);
+    }
+
     public void setGlobalCompositeOperation(String rule) {
         int compositeRule = CompositeAdapter.parse(rule);
         if (compositeRule != MISMATCH) {
@@ -245,12 +451,12 @@ public class ContextAdapter {
         }
     }
 
-    public void setGlobalAlpha(double alpha) {
+    public void setGlobalAlpha(float alpha) {
         if (alpha > 1.0 || alpha < 0) {
             return;
         }
         AlphaComposite composite = (AlphaComposite) context.getComposite();
-        context.setComposite(AlphaComposite.getInstance(composite.getRule(), (float) alpha));
+        context.setComposite(AlphaComposite.getInstance(composite.getRule(), alpha));
     }
 
     public void drawImage(BufferedImage img, int x, int y) {
@@ -311,6 +517,32 @@ public class ContextAdapter {
 
     public void putImageData(ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
         putImageData(canvas, imageData, x, y, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    }
+
+    public void save() {
+        AffineTransform af = context.getTransform();
+        context.setTransform(new AffineTransform());
+        Shape shape = context.getClip();
+        context.setTransform(af);
+        CanvasState state = new CanvasState(fillPaint, strokePaint, textAlign, textBaseline, shape,
+                context.getStroke(), af, context.getComposite(), context.getFont());
+        stateStack.push(state);
+    }
+
+    public void restore() {
+        if (!stateStack.isEmpty()) {
+            CanvasState state = stateStack.pop();
+            context.setTransform(new AffineTransform());
+            context.setClip(state.getClip());
+            context.setTransform(state.getTransform());
+            context.setStroke(state.getStroke());
+            context.setComposite(state.getComposite());
+            context.setFont(state.getFont());
+            fillPaint = state.getFillPaint();
+            strokePaint = state.getStrokePaint();
+            textAlign = state.getTextAlign();
+            textBaseline = state.getTextBaseline();
+        }
     }
 
     public void out(File file) {
@@ -381,7 +613,7 @@ public class ContextAdapter {
         for (int j = minY; j < boundY; j++) {
             for (int i = minX; i < boundX; i++) {
                 int k = ((j - y) * imageData.getWidth() + (i - x)) * 4;
-                int color = (data[k + 3] << 24) | (data[k] << 16) | (data[k + 1] << 8) | data[k + 2];
+                int color = CanvasUtils.RGBAToIntColor(data[k], data[k + 1], data[k + 2], data[k + 3]);
                 img.setRGB(i, j, color);
             }
         }

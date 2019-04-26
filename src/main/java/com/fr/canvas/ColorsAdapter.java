@@ -43,6 +43,18 @@ public class ColorsAdapter {
         int len = color.length();
         int r, g, b, a;
         try{
+            if (len == 3) {
+                r = Integer.parseInt(color.substring(0, 1), 16);
+                g = Integer.parseInt(color.substring(1, 2), 16);
+                b = Integer.parseInt(color.substring(2, 3), 16);
+                return new Color(r / 15.0f, g / 15.0f,b / 15.0f);
+            } else if (len == 4) {
+                r = Integer.parseInt(color.substring(0, 1), 16);
+                g = Integer.parseInt(color.substring(1, 2), 16);
+                b = Integer.parseInt(color.substring(2, 3), 16);
+                a = Integer.parseInt(color.substring(3, 4), 16);
+                return new Color(r / 15.0f, g / 15.0f, b / 15.0f, a/15.0f);
+            }
             if (len == 6) {
                 r = Integer.parseInt(color.substring(0, 2), 16);
                 g = Integer.parseInt(color.substring(2, 4), 16);

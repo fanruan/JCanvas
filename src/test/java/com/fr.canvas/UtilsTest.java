@@ -2,6 +2,8 @@ package com.fr.canvas;
 
 import junit.framework.TestCase;
 
+import java.awt.Color;
+
 public class UtilsTest extends TestCase {
 
     public void testToArc2DAngle1() {
@@ -92,5 +94,15 @@ public class UtilsTest extends TestCase {
         assertEquals(255, rgba[1]);
         assertEquals(0, rgba[2]);
         assertEquals(255, rgba[3]);
+    }
+
+    public void testRGBAToIntColor1() {
+        int r = 0;
+        int g = 0;
+        int b = 255;
+        int a = 255;
+        int color = CanvasUtils.RGBAToIntColor(r,g,b,a);
+        assertEquals(0xff0000ff, color);
+        assertEquals(new Color(0,0,255,255),new Color(color));
     }
 }
