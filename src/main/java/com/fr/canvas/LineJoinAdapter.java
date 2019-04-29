@@ -37,4 +37,17 @@ public enum LineJoinAdapter {
 
         return ContextAdapter.MISMATCH;
     }
+
+    public static String valueOf(int join){
+        if(types == null){
+            types = LineJoinAdapter.values();
+        }
+
+        for(LineJoinAdapter lineJoin : types){
+            if(lineJoin.join == join){
+                return lineJoin.type;
+            }
+        }
+        return "miter";
+    }
 }

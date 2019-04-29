@@ -37,4 +37,17 @@ public enum CompositeAdapter {
 
         return ContextAdapter.MISMATCH;
     }
+
+    public static String valueOf(int composite){
+        if(types == null){
+            types = CompositeAdapter.values();
+        }
+
+        for(CompositeAdapter compositeAdapter : types){
+            if(compositeAdapter.composite == composite){
+                return compositeAdapter.type;
+            }
+        }
+        return "source-over";
+    }
 }

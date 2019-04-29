@@ -9,6 +9,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -44,6 +45,14 @@ public class ContextAdapter {
     private float[] coords = new float[6];
 
     public ContextAdapter(Graphics2D context, BufferedImage canvas) {
+        init(context, canvas);
+    }
+
+    public void reset(Graphics2D context, BufferedImage canvas) {
+        init(context, canvas);
+    }
+
+    private void init(Graphics2D context, BufferedImage canvas) {
         this.canvas = canvas;
         this.context = context;
         this.fillPaint = Color.BLACK;
@@ -54,12 +63,14 @@ public class ContextAdapter {
         stateStack = new LinkedList<CanvasState>();
     }
 
-    public void setFillStyle(String fillStyle) {
+    public Paint setFillStyle(String fillStyle) {
         setStyle(fillStyle, true);
+        return fillPaint;
     }
 
-    public void setStrokeStyle(String strokeStyle) {
+    public Paint setStrokeStyle(String strokeStyle) {
         setStyle(strokeStyle, false);
+        return strokePaint;
     }
 
     private void setStyle(String style, boolean isFill) {
@@ -73,11 +84,11 @@ public class ContextAdapter {
         }
     }
 
-    public LinearGradientAdapter createLinearGradient(double x0, double y0, double x1, double y1) {
+    public LinearGradientAdapter createLinearGradient(float x0, float y0, float x1, float y1) {
         return new LinearGradientAdapter(x0, y0, x1, y1);
     }
 
-    public RadialGradientAdapter createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1) {
+    public RadialGradientAdapter createRadialGradient(float x0, float y0, float r0, float x1, float y1, float r1) {
         return new RadialGradientAdapter(x0, y0, r0, x1, y1, r1);
     }
 
@@ -148,19 +159,19 @@ public class ContextAdapter {
         }
     }
 
-    public boolean tryArcTo(float x1, float y1, float x2, float y2, float radius) {
+    private boolean tryArcTo(float x1, float y1, float x2, float y2, float radius) {
 
         float x0, y0;
-        coords[0] = (float)path.getCurrentPoint().getX();
-        coords[1] = (float)path.getCurrentPoint().getY();
-        double[] doubleCoords = new double[]{coords[0],coords[1]};
+        coords[0] = (float) path.getCurrentPoint().getX();
+        coords[1] = (float) path.getCurrentPoint().getY();
+        double[] doubleCoords = new double[]{coords[0], coords[1]};
         try{
             context.getTransform().inverseTransform(doubleCoords, 0, doubleCoords, 0, 1);
         } catch (Exception e) {
             return false;
         }
-        x0 = (float)doubleCoords[0];
-        y0 = (float)doubleCoords[1];
+        x0 = (float) doubleCoords[0];
+        y0 = (float) doubleCoords[1];
         double lsq01 = lenSq(x0, y0, x1, y1);
         double lsq12 = lenSq(x1, y1, x2, y2);
         double lsq02 = lenSq(x0, y0, x2, y2);
@@ -312,30 +323,42 @@ public class ContextAdapter {
         context.setTransform(af);
     }
 
-    public void setLineCap(String lineCap) {
+    public String setLineCap(String lineCap) {
         int cap = LineCapAdapter.parse(lineCap);
         if (cap != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
             context.setStroke(new BasicStroke(stroke.getLineWidth(), cap, stroke.getLineJoin(), stroke.getMiterLimit()));
         }
+        BasicStroke strokeState = (BasicStroke) context.getStroke();
+        return LineJoinAdapter.valueOf(strokeState.getLineJoin());
     }
 
-    public void setLineJoin(String lineJoin) {
+    public String setLineJoin(String lineJoin) {
         int join = LineJoinAdapter.parse(lineJoin);
         if (join != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
             context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), join, stroke.getMiterLimit()));
         }
+        BasicStroke strokeState = (BasicStroke) context.getStroke();
+        return LineJoinAdapter.valueOf(strokeState.getLineJoin());
     }
 
-    public void setLineWidth(float lineWidth) {
-        BasicStroke stroke = (BasicStroke) context.getStroke();
-        context.setStroke(new BasicStroke(lineWidth, stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit()));
+    public float setLineWidth(float lineWidth) {
+        if (lineWidth > 0) {
+            BasicStroke stroke = (BasicStroke) context.getStroke();
+            context.setStroke(new BasicStroke(lineWidth, stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit()));
+        }
+        BasicStroke strokeState = (BasicStroke) context.getStroke();
+        return strokeState.getLineWidth();
     }
 
-    public void setMiterLimit(float miterLimit) {
-        BasicStroke stroke = (BasicStroke) context.getStroke();
-        context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), miterLimit));
+    public float setMiterLimit(float miterLimit) {
+        if (miterLimit > 0) {
+            BasicStroke stroke = (BasicStroke) context.getStroke();
+            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), miterLimit));
+        }
+        BasicStroke strokeState = (BasicStroke) context.getStroke();
+        return strokeState.getMiterLimit();
 
     }
 
@@ -363,18 +386,28 @@ public class ContextAdapter {
         context.setTransform(new AffineTransform(mxx, myx, mxy, myy, mxt, myt));
     }
 
-    public void setFont(String font) {
+    public String setFont(String font) {
         if (!StringUtils.isEmpty(font)) {
             context.setFont(FontAdapter.processFont(font));
         }
+        Font fontState = context.getFont();
+        return FontAdapter.font2String(fontState);
     }
 
-    public void setTextAlign(String textAlign) {
-        this.textAlign = TextAlignAdapter.get(textAlign);
+    public String setTextAlign(String textAlign) {
+        TextAlignAdapter textAlignAdapter = TextAlignAdapter.get(textAlign);
+        if (textAlignAdapter != null) {
+            this.textAlign = textAlignAdapter;
+        }
+        return this.textAlign.getTextAlign();
     }
 
-    public void setTextBaseline(String textBaseline) {
-        this.textBaseline = TextBaselineAdapter.get(textBaseline);
+    public String setTextBaseline(String textBaseline) {
+        TextBaselineAdapter textBaselineAdapter = TextBaselineAdapter.get(textBaseline);
+        if(textBaseline!=null) {
+            this.textBaseline = textBaselineAdapter;
+        }
+        return this.textBaseline.getTextBaseline();
     }
 
     public void fillText(String text, float x, float y) {
@@ -443,20 +476,23 @@ public class ContextAdapter {
         return new TextMetrics(0);
     }
 
-    public void setGlobalCompositeOperation(String rule) {
+    public String setGlobalCompositeOperation(String rule) {
         int compositeRule = CompositeAdapter.parse(rule);
         if (compositeRule != MISMATCH) {
             AlphaComposite composite = (AlphaComposite) context.getComposite();
             context.setComposite(AlphaComposite.getInstance(compositeRule, composite.getAlpha()));
         }
+        AlphaComposite compositeState = (AlphaComposite) context.getComposite();
+        return CompositeAdapter.valueOf(compositeState.getRule());
     }
 
-    public void setGlobalAlpha(float alpha) {
-        if (alpha > 1.0 || alpha < 0) {
-            return;
+    public float setGlobalAlpha(float alpha) {
+        if (alpha <= 1.0 || alpha >= 0) {
+            AlphaComposite composite = (AlphaComposite) context.getComposite();
+            context.setComposite(AlphaComposite.getInstance(composite.getRule(), alpha));
         }
-        AlphaComposite composite = (AlphaComposite) context.getComposite();
-        context.setComposite(AlphaComposite.getInstance(composite.getRule(), alpha));
+        AlphaComposite compositeState = (AlphaComposite) context.getComposite();
+        return compositeState.getAlpha();
     }
 
     public void drawImage(BufferedImage img, int x, int y) {
@@ -515,7 +551,7 @@ public class ContextAdapter {
         putImageData(image, x, y, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     }
 
-    public void putImageData(ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+    private void putImageData(ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
         putImageData(canvas, imageData, x, y, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     }
 
@@ -545,9 +581,9 @@ public class ContextAdapter {
         }
     }
 
-    public void out(File file) {
+    public void out(String file) {
         try{
-            ImageIO.write(canvas, "PNG", file);
+            ImageIO.write(canvas, "PNG", new File(file));
             context.dispose();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());

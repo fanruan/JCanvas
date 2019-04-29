@@ -28,11 +28,25 @@ public enum LineCapAdapter {
         if(types == null){
             types = LineCapAdapter.values();
         }
+
         for(LineCapAdapter lineCap : types){
             if(lineCap.getType().equals(type)){
                 return lineCap.capType;
             }
         }
         return ContextAdapter.MISMATCH;
+    }
+
+    public static String valueOf(int capType){
+        if(types == null){
+            types = LineCapAdapter.values();
+        }
+
+        for(LineCapAdapter lineCap : types){
+            if(lineCap.capType == capType){
+                return lineCap.type;
+            }
+        }
+        return "butt";
     }
 }

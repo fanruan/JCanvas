@@ -62,6 +62,15 @@ public class FontAdapter {
         return f;
     }
 
+    public static String font2String(Font font) {
+        StringBuilder builder = new StringBuilder();
+        builder.append((font.getStyle() & Font.BOLD) > 0 ? "bold " : "")
+                .append((font.getStyle() & Font.ITALIC) > 0 ? "italic " : "")
+                .append(font.getSize()).append(" ")
+                .append(font.getFamily());
+        return builder.toString();
+    }
+
     public static boolean isMetricValue(final String value) {
         return value.contains(CSS.Value.PX) || value.contains(CSS.Value.IN) || value.contains(CSS.Value.CM)
                 || value.contains(CSS.Value.MM) || value.contains(CSS.Value.PC) || value.contains(CSS.Value.PT);

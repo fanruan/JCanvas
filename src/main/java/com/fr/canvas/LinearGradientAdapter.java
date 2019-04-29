@@ -9,16 +9,16 @@ import java.awt.LinearGradientPaint;
 
 public class LinearGradientAdapter {
 
-    private double x0, y0, x1, y1;
+    private float x0, y0, x1, y1;
 
     private List<Stop> stops;
 
-    public LinearGradientAdapter(double x0, double y0, double x1, double y1) {
+    public LinearGradientAdapter(float x0, float y0, float x1, float y1) {
         this.x0 = x0;
         this.y0 = y0;
         this.x1 = x1;
         this.y1 = y1;
-        stops = new ArrayList<Stop>();
+        this.stops = new ArrayList<Stop>();
     }
 
     public void addColorStop(double offset, String color) {
@@ -77,5 +77,19 @@ public class LinearGradientAdapter {
             floats[i] = fractions.get(i).floatValue();
         }
         return new LinearGradientPaint(x0, y0, x1, y1, floats, colors.toArray(new Color[colors.size()]));
+    }
+
+    public static LinearGradientAdapter Paint2Adapter(LinearGradientPaint paint) {
+        if (paint == null) {
+            throw new NullPointerException("paint must be specified");
+        }
+        LinearGradientAdapter linearGradient = new LinearGradientAdapter((float) paint.getStartPoint().getX(), (float) paint.getStartPoint().getY(),
+                (float) paint.getEndPoint().getX(), (float) paint.getEndPoint().getY());
+        float[] f = paint.getFractions();
+        Color[] colors = paint.getColors();
+        for(int i = 0; i< f.length;i++){
+            linearGradient.stops.add(new Stop(f[i], colors[i]));
+        }
+        return linearGradient;
     }
 }
