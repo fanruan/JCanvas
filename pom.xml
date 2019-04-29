@@ -26,5 +26,10 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fr.third</groupId>
+            <artifactId>fine-third</artifactId>
+            <version>${fr-version}</version>
+        </dependency>
     </dependencies>
 </project>

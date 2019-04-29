@@ -20,4 +20,22 @@ public class FontTest extends TestCase {
         assertEquals(12, f.getSize());
         assertEquals(Font.ITALIC | Font.BOLD, f.getStyle());
     }
+
+    public void testFont2String1(){
+        Font font = new Font("Times New Roman",Font.ITALIC , 18);
+        String s = FontAdapter.font2String(font);
+        assertEquals("italic 18 Times New Roman", s);
+    }
+
+    public void testFont2String2(){
+        Font font = new Font("Times New Roman",Font.BOLD , 11);
+        String s = FontAdapter.font2String(font);
+        assertEquals("bold 11 Times New Roman", s);
+    }
+
+    public void testFont2String3(){
+        Font font = new Font("Times New Roman",Font.ITALIC| Font.BOLD, 11);
+        String s = FontAdapter.font2String(font);
+        assertEquals("bold italic 11 Times New Roman", s);
+    }
 }

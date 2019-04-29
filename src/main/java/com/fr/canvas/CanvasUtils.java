@@ -1,5 +1,7 @@
 package com.fr.canvas;
 
+import java.awt.Color;
+
 public class CanvasUtils {
 
     private static final double FULL_RADIAN = Math.PI * 2;
@@ -57,5 +59,17 @@ public class CanvasUtils {
 
     public static int RGBAToIntColor(int r, int g, int b, int a) {
         return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    public static String color2Hexadecimal(Color color) {
+        int r = color.getRed();
+        int g = color.getGreen();
+        int b = color.getBlue();
+        int a = color.getAlpha();
+        String stringR = r > 15 ? Integer.toString(r, 16) : "0" + Integer.toString(r, 16);
+        String stringG = g > 15 ? Integer.toString(g, 16) : "0" + Integer.toString(g, 16);
+        String stringB = b > 15 ? Integer.toString(b, 16) : "0" + Integer.toString(b, 16);
+        String stringA = a == 0 ? "" : a > 15 ? Integer.toString(a, 16) : "0" + Integer.toString(a, 16);
+        return ("#" + stringR + stringG + stringB + stringA);
     }
 }

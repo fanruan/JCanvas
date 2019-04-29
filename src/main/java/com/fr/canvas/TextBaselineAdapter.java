@@ -5,10 +5,20 @@ import java.util.Map;
 
 public enum TextBaselineAdapter {
 
-    ALPHABETIC,
-    TOP,
-    BOTTOM,
-    CENTER;
+    ALPHABETIC("alphabetic"),
+    TOP("top"),
+    BOTTOM("bottom"),
+    CENTER("middle");
+
+    private String textBaseline;
+
+    TextBaselineAdapter(String textBaseline){
+        this.textBaseline = textBaseline;
+    }
+
+    public String getTextBaseline(){
+        return textBaseline;
+    }
 
     public static Map<String, TextBaselineAdapter> textBaselineMap;
 

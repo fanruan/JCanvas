@@ -105,4 +105,10 @@ public class UtilsTest extends TestCase {
         assertEquals(0xff0000ff, color);
         assertEquals(new Color(0,0,255,255),new Color(color));
     }
+
+    public void testColor2Hexadecimal(){
+        Color color = new Color(255,255,16,1);
+        String hexadecimal = CanvasUtils.color2Hexadecimal(color);
+        assertEquals("#ffff1001", hexadecimal);
+    }
 }

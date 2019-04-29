@@ -10,11 +10,11 @@ import java.awt.RadialGradientPaint;
 import java.awt.geom.Point2D;
 
 public class RadialGradientAdapter {
-    private double x0, y0, r0, x1, y1, r1;
+    private float x0, y0, r0, x1, y1, r1;
 
     private List<Stop> stops;
 
-    public RadialGradientAdapter(double x0, double y0, double r0, double x1, double y1, double r1) {
+    public RadialGradientAdapter(float x0, float y0, float r0, float x1, float y1, float r1) {
         this.x0 = x0;
         this.y0 = y0;
         this.r0 = r0;
@@ -84,4 +84,17 @@ public class RadialGradientAdapter {
         return new RadialGradientPaint(new Point2D.Double(x1, y1), r1, new Point2D.Double(x0, y0), floats, colors.toArray(new Color[colors.size()]), MultipleGradientPaint.CycleMethod.NO_CYCLE);
     }
 
+    public static RadialGradientAdapter Paint2Adapter(RadialGradientPaint paint) {
+        if (paint == null) {
+            throw new NullPointerException("paint must be specified");
+        }
+        RadialGradientAdapter radialGradient = new RadialGradientAdapter((float) paint.getFocusPoint().getX(), (float) paint.getFocusPoint().getY(), 0,
+        (float) paint.getCenterPoint().getX(), (float) paint.getCenterPoint().getY(), paint.getRadius());
+        float[] f = paint.getFractions();
+        Color[] colors = paint.getColors();
+        for (int i = 0; i < f.length; i++) {
+            radialGradient.stops.add(new Stop(f[i], colors[i]));
+        }
+        return radialGradient;
+    }
 }

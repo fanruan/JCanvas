@@ -5,9 +5,19 @@ import java.util.Map;
 
 public enum TextAlignAdapter {
 
-    LEFT,
-    RIGHT,
-    CENTER;
+    LEFT("start"),
+    RIGHT("end"),
+    CENTER("center");
+
+    private String textAlign;
+
+    TextAlignAdapter(String textAlign){
+        this.textAlign = textAlign;
+    }
+
+    public String getTextAlign(){
+        return textAlign;
+    }
 
     public static Map<String, TextAlignAdapter> textAlignMap;
 
@@ -23,5 +33,4 @@ public enum TextAlignAdapter {
     public static TextAlignAdapter get(String textAlign) {
         return textAlignMap.get(textAlign);
     }
-
 }
