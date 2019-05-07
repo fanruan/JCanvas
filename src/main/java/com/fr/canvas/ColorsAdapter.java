@@ -2,6 +2,7 @@ package com.fr.canvas;
 
 import com.fr.general.ComparatorUtils;
 import com.fr.log.FineLoggerFactory;
+import com.fr.stable.StringUtils;
 
 import java.awt.Color;
 import java.awt.Paint;
@@ -13,11 +14,7 @@ public class ColorsAdapter {
     public static final String JS_OBJECT = "[object Object]";
 
     public static Color web(String colorString) {
-        if (colorString == null) {
-            throw new NullPointerException(
-                    "The color components or name must be specified");
-        }
-        if (colorString.isEmpty()) {
+        if (StringUtils.isEmpty(colorString)) {
             throw new IllegalArgumentException("Invalid color specification");
         }
 

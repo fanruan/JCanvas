@@ -21,23 +21,35 @@ public class CanvasAdapter {
         this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
 
-    public double getWidth() {
+    public BufferedImage getCanvas() {
+        return this.canvas;
+    }
+
+    public int getWidth() {
         return canvas.getWidth();
     }
 
-    public double getHeight() {
+    public int getHeight() {
         return canvas.getHeight();
+    }
+
+    public void setAttribute(String attribute, int value) {
+        if ("width".equals(attribute)) {
+            this.setWidth(value);
+        } else if ("height".equals(attribute)) {
+            this.setHeight(value);
+        }
     }
 
     public void setWidth(int width) {
         int height = canvas.getHeight();
-        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         initContextAdapter();
     }
 
     public void setHeight(int height) {
         int width = canvas.getWidth();
-        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         initContextAdapter();
     }
 

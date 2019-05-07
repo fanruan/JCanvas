@@ -10,23 +10,17 @@ import java.io.InputStreamReader;
 
 public class V8Adapter {
 
-    private V8 v8;
-
-    public V8Adapter(V8 v8){
-        this.v8 = v8;
-    }
-
-    public void init() {
-        String script = loadAdapterJS();
+    public static void init(V8 v8) {
+        String script = loadAdapterJS("/js/fx-adapter.js");
         v8.executeVoidScript(script);
         //注册Canvas
         V8Canvas.register(v8);
     }
 
-    private static String loadAdapterJS() {
+    public static String loadAdapterJS(String resPath) {
         InputStream stream = null;
         try {
-            stream = V8Adapter.class.getClass().getResourceAsStream("/js/fx-adapter.js");
+            stream = V8Adapter.class.getClass().getResourceAsStream(resPath);
             return CharStreams.toString(new InputStreamReader(stream));
         } catch (IOException e) {
             e.printStackTrace();

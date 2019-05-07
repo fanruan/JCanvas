@@ -69,7 +69,7 @@ public class CanvasUtils {
         String stringR = r > 15 ? Integer.toString(r, 16) : "0" + Integer.toString(r, 16);
         String stringG = g > 15 ? Integer.toString(g, 16) : "0" + Integer.toString(g, 16);
         String stringB = b > 15 ? Integer.toString(b, 16) : "0" + Integer.toString(b, 16);
-        String stringA = a == 0 ? "" : a > 15 ? Integer.toString(a, 16) : "0" + Integer.toString(a, 16);
+        String stringA = a == 255 ? "" : a > 15 ? Integer.toString(a, 16) : "0" + Integer.toString(a, 16);
         return ("#" + stringR + stringG + stringB + stringA);
     }
 }
