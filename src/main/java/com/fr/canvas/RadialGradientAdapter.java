@@ -1,6 +1,6 @@
 package com.fr.canvas;
 
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;

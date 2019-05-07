@@ -1,6 +1,6 @@
 package com.fr.canvas;
 
-import com.fr.stable.AssistUtils;
+import com.fr.canvas.util.AssistUtils;
 
 import java.util.Arrays;
 

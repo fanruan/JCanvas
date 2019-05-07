@@ -1,6 +1,6 @@
 package com.fr.canvas;
 
-import com.fr.stable.StringUtils;
+import com.fr.canvas.util.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.io.File;

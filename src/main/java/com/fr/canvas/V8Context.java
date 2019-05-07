@@ -5,7 +5,7 @@ import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
 
 import java.awt.Color;
 import java.awt.LinearGradientPaint;

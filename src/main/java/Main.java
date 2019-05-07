@@ -2,7 +2,7 @@ import com.eclipsesource.v8.V8;
 import com.fr.canvas.CanvasAdapter;
 import com.fr.canvas.V8Adapter;
 import com.fr.canvas.V8Canvas;
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.io.File;

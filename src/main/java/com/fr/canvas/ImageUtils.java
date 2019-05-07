@@ -1,15 +1,15 @@
 package com.fr.canvas;
 
-import com.fr.log.FineLoggerFactory;
-import com.fr.stable.StringUtils;
-import com.fr.third.alibaba.druid.util.LRUCache;
-import com.fr.third.guava.io.BaseEncoding;
+import com.fr.canvas.log.FineLoggerFactory;
+import com.fr.canvas.util.StringUtils;
+import com.google.common.io.BaseEncoding;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.awt.image.BufferedImage;
@@ -21,7 +21,7 @@ public class ImageUtils {
 
     public static final Map<String, CanvasAdapter> CANVAS_HOLDER = new ConcurrentHashMap<String, CanvasAdapter>();
 
-    private static final LRUCache<String, BufferedImage> IMAGE_CACHE = new LRUCache<String, BufferedImage>(50);
+    private static final Map<String, BufferedImage> IMAGE_CACHE = new HashMap<String, BufferedImage>();
 
     public static BufferedImage get(String id) {
         CanvasAdapter canvasAdapter =  CANVAS_HOLDER.get(id);

@@ -1,6 +1,6 @@
 package com.fr.canvas;
 
-import com.fr.third.v2.lowagie.text.html.CSS;
+import com.fr.canvas.util.CSS;
 
 import java.util.HashMap;
 import java.util.Map;
