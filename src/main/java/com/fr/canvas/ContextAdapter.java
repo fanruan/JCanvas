@@ -1,24 +1,17 @@
 package com.fr.canvas;
 
-import com.fr.stable.StringUtils;
+import com.fr.canvas.util.StringUtils;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.util.LinkedList;
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.LinkedList;
 
 public class ContextAdapter {
 

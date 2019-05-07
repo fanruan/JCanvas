@@ -1,13 +1,11 @@
 package com.fr.canvas;
 
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
 
+import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Color;
-import java.awt.MultipleGradientPaint;
-import java.awt.RadialGradientPaint;
-import java.awt.geom.Point2D;
 
 public class RadialGradientAdapter {
     private float x0, y0, r0, x1, y1, r1;

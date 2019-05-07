@@ -1,10 +1,9 @@
 package com.fr.canvas;
 
-import com.fr.general.ComparatorUtils;
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
+import com.fr.canvas.util.AssistUtils;
 
-import java.awt.Color;
-import java.awt.Paint;
+import java.awt.*;
 
 public class ColorsAdapter {
 
@@ -187,7 +186,7 @@ public class ColorsAdapter {
 
     public static Paint parsePaint(String style) {
 
-        if (isJsNull(style) || ComparatorUtils.equals(style, JS_OBJECT)) {
+        if (isJsNull(style) || AssistUtils.equals(style, JS_OBJECT)) {
             return null;
         }
         try{
@@ -200,7 +199,7 @@ public class ColorsAdapter {
 
     private static boolean isJsNull(String style) {
 
-        return style == null || ComparatorUtils.equals(style, "none") || ComparatorUtils.equals(style, "undefined");
+        return style == null || "none".equals(style) || "undefined".equals(style);
 
     }
 

@@ -1,11 +1,10 @@
 package com.fr.canvas;
 
-import com.fr.log.FineLoggerFactory;
+import com.fr.canvas.log.FineLoggerFactory;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Color;
-import java.awt.LinearGradientPaint;
 
 public class LinearGradientAdapter {
 

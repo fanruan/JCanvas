@@ -1,8 +1,8 @@
 package com.fr.canvas;
 
 import com.eclipsesource.v8.V8;
-import com.fr.third.guava.io.CharStreams;
-import com.fr.third.guava.io.Closeables;
+import com.google.common.io.CharStreams;
+import com.google.common.io.Closeables;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +26,7 @@ public class V8Adapter {
     private static String loadAdapterJS() {
         InputStream stream = null;
         try {
-            stream = V8Adapter.class.getClass().getResourceAsStream("/js/fx-adapter.js");
+            stream = V8Adapter.class.getResourceAsStream("/js/fx-adapter.js");
             return CharStreams.toString(new InputStreamReader(stream));
         } catch (IOException e) {
             e.printStackTrace();
