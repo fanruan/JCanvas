@@ -20,7 +20,7 @@ public class V8Adapter {
     public static String loadAdapterJS(String resPath) {
         InputStream stream = null;
         try{
-            stream = V8Adapter.class.getClass().getResourceAsStream(resPath);
+            stream = V8Adapter.class.getResourceAsStream(resPath);
             return CharStreams.toString(new InputStreamReader(stream));
         } catch (IOException e) {
             e.printStackTrace();
