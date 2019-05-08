@@ -2,9 +2,10 @@ package com.fr.canvas;
 
 import com.fr.canvas.log.FineLoggerFactory;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Color;
+import java.awt.LinearGradientPaint;
 
 public class LinearGradientAdapter {
 
@@ -27,6 +28,11 @@ public class LinearGradientAdapter {
         } catch (Exception ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
         }
+    }
+
+    public void addColorStop(String offsetStr, String color) {
+        double offset = Double.parseDouble(offsetStr);
+        addColorStop(offset, color);
     }
 
     @Override
@@ -86,7 +92,7 @@ public class LinearGradientAdapter {
                 (float) paint.getEndPoint().getX(), (float) paint.getEndPoint().getY());
         float[] f = paint.getFractions();
         Color[] colors = paint.getColors();
-        for(int i = 0; i< f.length;i++){
+        for (int i = 0; i < f.length; i++) {
             linearGradient.stops.add(new Stop(f[i], colors[i]));
         }
         return linearGradient;

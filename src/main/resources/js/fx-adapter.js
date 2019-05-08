@@ -1,13 +1,71 @@
+function setTimeout() {
+
+};
+
+function clearTimeout(cancel) {
+
+};
+
+function setInterval(fn, delay /* [, args...] */) {
+
+};
+
+function clearInterval(cancel) {
+
+};
+
+var BI = {};
+
+var global = {};
+
+var window = {
+    BI: BI,
+    devicePixelRatio: 1,
+    setTimeout: setTimeout,
+    clearTimeout: clearTimeout,
+    setInterval: setInterval,
+    clearInterval: clearInterval
+};
+
+var document = {
+    createElement: function () {
+        return {
+            getContext: true,
+            style : {}
+        }
+
+    },
+
+    documentElement: {
+        style: {}
+    }
+};
+
+var navigator = {
+
+    userAgent: '',
+
+    platform: ''
+
+};
+
+var console = {
+    log: function (info) {
+        this.log(info);
+    }
+};
+
 NativeCanvasPrototype = {
     set width(v) {
         this.setWidth(v);
     }, get width() {
         return this.getWidth();
-    }, set height(v) {
+    },
+    set height(v) {
         this.setHeight(v);
     }, get height() {
         return this.getHeight();
-    }
+    },
 };
 
 NativeContextPrototype = {
@@ -83,21 +141,16 @@ NativeContextPrototype = {
 };
 
 
-NativeImagePrototype = {
+NativeImageDataPrototype = {
+    _width: 0,
     set width(v) {
     }, get width() {
-        return this.getWidth();
-    }, set height(v) {
-
-    }, get height() {
-        return this.getHeight();
+        return _width = this.getWidth();
     },
-    _src: '',
-    set src(v) {
-        this._src = v;
-        this.setSrc(v);
-    }, get src() {
-        return this._src;
+    _height: 0,
+    set height(v) {
+    }, get height() {
+        return _height = this.getHeight();
     },
 };
 

@@ -2,10 +2,10 @@ package com.fr.canvas;
 
 import com.fr.canvas.util.CSS;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.awt.Font;
 
 public class FontAdapter {
 

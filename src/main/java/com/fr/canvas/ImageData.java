@@ -31,6 +31,10 @@ public class ImageData {
 
     @Override
     public String toString() {
+        return toString(width, height, data);
+    }
+
+    public static String toString(int width, int height, int[] data) {
         StringBuilder s = new StringBuilder("ImageData(")
                 .append(width).append("|")
                 .append(height).append("|");
