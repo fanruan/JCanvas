@@ -11,8 +11,6 @@ import java.io.InputStreamReader;
 public class V8Adapter {
 
     public static void init(V8 v8) {
-        String script = loadAdapterJS("/js/fx-adapter.js");
-        v8.executeVoidScript(script);
         //注册Canvas
         V8Canvas.register(v8);
     }

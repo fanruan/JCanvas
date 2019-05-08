@@ -7,9 +7,9 @@ import com.google.common.io.BaseEncoding;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.awt.image.BufferedImage;
@@ -21,14 +21,10 @@ public class ImageUtils {
 
     public static final Map<String, CanvasAdapter> CANVAS_HOLDER = new ConcurrentHashMap<String, CanvasAdapter>();
 
-    private static final Map<String, BufferedImage> IMAGE_CACHE = new HashMap<String, BufferedImage>();
 
     public static BufferedImage get(String id) {
-        CanvasAdapter canvasAdapter =  CANVAS_HOLDER.get(id);
-        if(canvasAdapter ==null) {
-           return null;
-        }
-        return canvasAdapter.getCanvas();
+        CanvasAdapter canvasAdapter = CANVAS_HOLDER.get(id);
+        return canvasAdapter == null ? null : canvasAdapter.getCanvas();
     }
 
     public static void put(String id, CanvasAdapter canvas) {
@@ -39,34 +35,15 @@ public class ImageUtils {
         CANVAS_HOLDER.remove(id);
     }
 
-    public static void putImage(String src, BufferedImage image) {
-        IMAGE_CACHE.put(src, image);
-    }
-
-    public static BufferedImage getImage(String src) {
-        return IMAGE_CACHE.get(src);
-    }
 
     public static BufferedImage getOrCreate(String src) {
-        BufferedImage image = IMAGE_CACHE.get(src);
-        if (image == null) {
-            image = create(src);
-            if (image == null) {
-                IMAGE_CACHE.put(src, image);
-            }
-        }
+        BufferedImage image = create(src);
         return image;
     }
 
     public static BufferedImage create(String src) {
-        if (StringUtils.isEmpty(src)) {
-            return null;
-        }
         try{
-            if (src.startsWith("data:")) {
-                return createByBase64(src);
-            }
-            return createByUrl(src);
+            return StringUtils.isEmpty(src) ? null : src.startsWith("data:") ? createByBase64(src) : createByUrl(src);
         } catch (IOException ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
             return null;
@@ -81,8 +58,10 @@ public class ImageUtils {
 
     private static BufferedImage createByUrl(String strUrl) throws IOException {
         URL url = new URL(strUrl); //声明url对象
-        URLConnection connection = url.openConnection(); //打开连接
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection(); //打开连接
         connection.setDoOutput(true);
-        return ImageIO.read(connection.getInputStream());
+        InputStream stream = connection.getInputStream();
+        connection.disconnect();
+        return ImageIO.read(stream);
     }
 }
