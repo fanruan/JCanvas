@@ -30,6 +30,11 @@ public class LinearGradientAdapter {
         }
     }
 
+    public void addColorStop(String offsetStr, String color) {
+        double offset = Double.parseDouble(offsetStr);
+        addColorStop(offset, color);
+    }
+
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder("linear-gradient(")
@@ -87,7 +92,7 @@ public class LinearGradientAdapter {
                 (float) paint.getEndPoint().getX(), (float) paint.getEndPoint().getY());
         float[] f = paint.getFractions();
         Color[] colors = paint.getColors();
-        for(int i = 0; i< f.length;i++){
+        for (int i = 0; i < f.length; i++) {
             linearGradient.stops.add(new Stop(f[i], colors[i]));
         }
         return linearGradient;

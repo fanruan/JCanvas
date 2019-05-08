@@ -33,6 +33,11 @@ public class RadialGradientAdapter {
         }
     }
 
+    public void addColorStop(String offsetStr, String color) {
+        double offset = Double.parseDouble(offsetStr);
+        addColorStop(offset, color);
+    }
+
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder("radial-gradient(")

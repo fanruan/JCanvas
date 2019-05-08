@@ -70,7 +70,6 @@ public class V8Context extends V8Object {
         registerJavaMethod(context, "setTextBaseline", "setTextBaseline", new Class[]{String.class});
         registerJavaMethod(context, "fillText", "fillText", new Class[]{String.class, double.class, double.class});
         registerJavaMethod(context, "strokeText", "strokeText", new Class[]{String.class, double.class, double.class});
-        registerJavaMethod(context, "measureText", "measureText", new Class[]{String.class});
         registerJavaMethod(context, "setGlobalCompositeOperation", "setGlobalCompositeOperation", new Class[]{String.class});
         registerJavaMethod(context, "setGlobalAlpha", "setGlobalAlpha", new Class[]{double.class});
         registerJavaMethod(context, "restore", "restore", new Class[]{});
@@ -112,11 +111,20 @@ public class V8Context extends V8Object {
             @Override
             public Object invoke(V8Object receiver, V8Array parameters) {
                 V8Object dimen = new V8Object(v8);
-                String str = parameters.getString(0);
-                TextMetrics textMetrics = context.measureText(str);
+                Object str = parameters.get(0);
+                TextMetrics textMetrics;
+                if (str == null) {
+                    textMetrics = context.measureText("null");
+                } else {
+                    textMetrics = context.measureText(str.toString());
+                    if(str instanceof V8Object){
+                        ((V8Object) str).release();
+                    }
+                }
                 dimen.registerJavaMethod(textMetrics, "getWidth", "getWidth", new Class[]{});
                 V8Object proto = v8.getObject("NativeTextMetricsPrototype");
                 dimen.setPrototype(proto);
+                proto.release();
                 return dimen;
             }
         }, "measureText");
