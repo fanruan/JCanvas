@@ -49,8 +49,6 @@ public class V8Context extends V8Object {
         registerJavaMethod(context, "strokeRect", "strokeRect", new Class[]{double.class, double.class, double.class, double.class});
         registerJavaMethod(context, "fillRect", "fillRect", new Class[]{double.class, double.class, double.class, double.class});
         registerJavaMethod(context, "clearRect", "clearRect", new Class[]{double.class, double.class, double.class, double.class});
-        //registerJavaMethod(context, "arc", "arc", new Class[]{double.class, double.class, double.class, double.class, double.class});
-        //registerJavaMethod(context, "arc", "arc", new Class[]{double.class, double.class, double.class, double.class, double.class, boolean.class});
         registerJavaMethod(context, "arcTo", "arcTo", new Class[]{double.class, double.class, double.class, double.class, double.class});
         registerJavaMethod(context, "quadraticCurveTo", "quadraticCurveTo", new Class[]{double.class, double.class, double.class, double.class});
         registerJavaMethod(context, "bezierCurveTo", "bezierCurveTo", new Class[]{double.class, double.class, double.class, double.class, double.class, double.class});

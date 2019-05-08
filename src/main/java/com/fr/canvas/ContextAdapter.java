@@ -11,12 +11,15 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
 import java.awt.Paint;
+import java.awt.RadialGradientPaint;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -301,16 +304,42 @@ public class ContextAdapter {
 
     public void stroke() {
         if (moved) {
-            beforeStroke();
+            checkPaint(false);
             draw(false);
         }
     }
 
     public void fill() {
         if (moved) {
-            beforeFill();
+            checkPaint(true);
             draw(true);
         }
+    }
+
+    private void checkPaint(boolean isFill) {
+        Paint paint = isFill ? fillPaint : strokePaint;
+        Paint transPaint = paint;
+        if (paint instanceof LinearGradientPaint) {
+            LinearGradientPaint linearPaint = (LinearGradientPaint) paint;
+            coords[0] = (float) linearPaint.getStartPoint().getX();
+            coords[1] = (float) linearPaint.getStartPoint().getY();
+            coords[2] = (float) linearPaint.getEndPoint().getX();
+            coords[3] = (float) linearPaint.getEndPoint().getY();
+            context.getTransform().transform(coords, 0, coords, 0, 2);
+            transPaint = new LinearGradientPaint(coords[0], coords[1], coords[2], coords[3],
+                    linearPaint.getFractions(), linearPaint.getColors());
+        } else if (paint instanceof RadialGradientPaint) {
+            RadialGradientPaint radialPaint = (RadialGradientPaint) paint;
+            coords[0] = (float) radialPaint.getCenterPoint().getX();
+            coords[1] = (float) radialPaint.getCenterPoint().getY();
+            coords[2] = (float) radialPaint.getFocusPoint().getX();
+            coords[3] = (float) radialPaint.getFocusPoint().getY();
+            context.getTransform().transform(coords, 0, coords, 0, 2);
+            //FIXME 渐变半径如何变化
+            transPaint = new RadialGradientPaint(new Point2D.Double(coords[0], coords[1]), radialPaint.getRadius(),
+                    new Point2D.Double(coords[2], coords[3]), radialPaint.getFractions(), radialPaint.getColors(), radialPaint.getCycleMethod());
+        }
+        context.setPaint(transPaint);
     }
 
     private void draw(boolean isFill) {
