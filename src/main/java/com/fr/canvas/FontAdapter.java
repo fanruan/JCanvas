@@ -58,7 +58,7 @@ public class FontAdapter {
             }
         }
         Font f = new Font(name, style, size);
-        FontAdapter.fontMap.put(font, f);
+        fontMap.put(font, f);
         return f;
     }
 
