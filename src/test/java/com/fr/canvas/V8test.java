@@ -14,7 +14,7 @@ public class V8test extends TestCase {
     public static void main(String[] args) {
         V8 v8 = V8.createV8Runtime();
         V8Adapter.init(v8);
-        CanvasAdapter canvas = new HighPrecisionCanvas();
+        CanvasAdapter canvas = new CanvasAdapter();
         v8.executeVoidScript(V8Adapter.loadAdapterJS("/js/fx-adapter.js"));
         V8Canvas v8Canvas = new V8Canvas(v8, canvas);
         try{
@@ -51,7 +51,7 @@ public class V8test extends TestCase {
             v8.release();
         }
     }
-    
+
     public static void findFiles(String beginPath, List<String> filePaths) {
         File homeDic = new File(beginPath);
         if (homeDic.exists()) {

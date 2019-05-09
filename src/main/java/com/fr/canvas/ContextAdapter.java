@@ -25,9 +25,9 @@ public class ContextAdapter {
 
     public static final int MISMATCH = -1;
 
-    protected Graphics2D context;
+    private Graphics2D context;
 
-    protected BufferedImage canvas;
+    private BufferedImage canvas;
 
     private Path2D path;
 
@@ -396,7 +396,8 @@ public class ContextAdapter {
     public void setTransform(double mxx, double myx,
                              double mxy, double myy,
                              double mxt, double myt) {
-        context.setTransform(new AffineTransform(mxx, myx, mxy, myy, mxt, myt));
+        context.setTransform(new AffineTransform(mxx, myx, mxy, myy, mxt * CanvasAdapter.RESOLUTION, myt * CanvasAdapter.RESOLUTION));
+        scale(CanvasAdapter.RESOLUTION, CanvasAdapter.RESOLUTION);
     }
 
     public String setFont(String font) {
@@ -601,7 +602,7 @@ public class ContextAdapter {
         context.dispose();
     }
 
-    protected ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {
+    private ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {
         if (width < 0) {
             x = x + width;
             width = -width;
@@ -610,14 +611,16 @@ public class ContextAdapter {
             y = y + height;
             height = -height;
         }
-        int minX = Math.max(x, 0);
-        int minY = Math.max(y, 0);
-        int boundX = Math.min(x + width, img.getWidth());
-        int boundY = Math.min(y + height, img.getHeight());
+        int minX = Math.max(x * CanvasAdapter.RESOLUTION, 0);
+        int minY = Math.max(y * CanvasAdapter.RESOLUTION, 0);
+        int boundX = Math.min((x + width) * CanvasAdapter.RESOLUTION, img.getWidth());
+        int boundY = Math.min((y + height) * CanvasAdapter.RESOLUTION, img.getHeight());
         int[] data = new int[width * height * 4];
-        for (int j = minY; j < boundY; j++) {
-            for (int i = minX; i < boundX; i++) {
-                int k = ((j - y) * width + (i - x)) * 4;
+        for (int j = minY; j < boundY; j = j + CanvasAdapter.RESOLUTION) {
+            for (int i = minX; i < boundX; i = i + CanvasAdapter.RESOLUTION) {
+                //距离除以2
+                int k = ((j - y * CanvasAdapter.RESOLUTION) * width
+                        / CanvasAdapter.RESOLUTION + (i - x * CanvasAdapter.RESOLUTION) / CanvasAdapter.RESOLUTION) * 4;
                 int[] rgba = CanvasUtils.intColorToRGBA(img.getRGB(i, j));
                 data[k] = rgba[0];
                 data[k + 1] = rgba[1];
@@ -628,11 +631,11 @@ public class ContextAdapter {
         return new ImageData(width, height, data);
     }
 
-    protected void putImageData(BufferedImage img, ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
-        int minX = Math.max(x, 0);
-        int minY = Math.max(y, 0);
-        int boundX = Math.min(x + imageData.getWidth(), img.getWidth());
-        int boundY = Math.min(y + imageData.getHeight(), img.getHeight());
+    private void putImageData(BufferedImage img, ImageData imageData, int x, int y, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+        int minX = Math.max(x * CanvasAdapter.RESOLUTION, 0);
+        int minY = Math.max(y * CanvasAdapter.RESOLUTION, 0);
+        int boundX = Math.min((x + imageData.getWidth()) * CanvasAdapter.RESOLUTION, img.getWidth());
+        int boundY = Math.min((y + imageData.getHeight()) * CanvasAdapter.RESOLUTION, img.getHeight());
         //将边为负的矩形重行定位宽高和左上角的点
         dirtyX = dirtyX + x;
         dirtyY = dirtyY + y;
@@ -644,10 +647,10 @@ public class ContextAdapter {
             dirtyY = dirtyY + dirtyHeight;
             dirtyHeight = -dirtyHeight;
         }
-        minX = Math.max(minX, dirtyX);
-        minY = Math.max(minY, dirtyY);
-        boundX = Math.min(boundX, dirtyX + dirtyWidth);
-        boundY = Math.min(boundY, dirtyY + dirtyHeight);
+        minX = Math.max(minX, dirtyX * CanvasAdapter.RESOLUTION);
+        minY = Math.max(minY, dirtyY * CanvasAdapter.RESOLUTION);
+        boundX = Math.min(boundX, (dirtyX + dirtyWidth) * CanvasAdapter.RESOLUTION);
+        boundY = Math.min(boundY, (dirtyY + dirtyHeight) * CanvasAdapter.RESOLUTION);
 
         int[] data = imageData.getData();
         for (int n = 0; n < data.length; n++) {
@@ -657,11 +660,15 @@ public class ContextAdapter {
                 data[n] = 0;
             }
         }
-        for (int j = minY; j < boundY; j++) {
-            for (int i = minX; i < boundX; i++) {
-                int k = ((j - y) * imageData.getWidth() + (i - x)) * 4;
+        for (int j = minY; j < boundY; j = j + CanvasAdapter.RESOLUTION) {
+            for (int i = minX; i < boundX; i = i + CanvasAdapter.RESOLUTION) {
+                int k = ((j - y * CanvasAdapter.RESOLUTION) * imageData.getWidth()
+                        / CanvasAdapter.RESOLUTION + (i - x * CanvasAdapter.RESOLUTION) / CanvasAdapter.RESOLUTION) * 4;
                 int color = CanvasUtils.RGBAToIntColor(data[k], data[k + 1], data[k + 2], data[k + 3]);
                 img.setRGB(i, j, color);
+                img.setRGB(i + 1, j, color);
+                img.setRGB(i, j + 1, color);
+                img.setRGB(i + 1, j + 1, color);
             }
         }
     }

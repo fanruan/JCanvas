@@ -9,9 +9,11 @@ import java.awt.image.BufferedImage;
 
 public class CanvasAdapter {
 
-    protected BufferedImage canvas;
+    public static int RESOLUTION = 2; //横纵像素倍数
 
-    protected ContextAdapter contextAdapter;
+    private BufferedImage canvas;
+
+    private ContextAdapter contextAdapter;
 
     public CanvasAdapter() {
         this(200, 200);
@@ -26,11 +28,11 @@ public class CanvasAdapter {
     }
 
     public int getWidth() {
-        return canvas.getWidth();
+        return canvas.getWidth()/ RESOLUTION;
     }
 
     public int getHeight() {
-        return canvas.getHeight();
+        return canvas.getHeight()/ RESOLUTION;
     }
 
     public void setAttribute(String attribute, int value) {
@@ -43,13 +45,13 @@ public class CanvasAdapter {
 
     public void setWidth(int width) {
         int height = canvas.getHeight();
-        this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        this.canvas = new BufferedImage(width * RESOLUTION, height, BufferedImage.TYPE_INT_ARGB);
         initContextAdapter();
     }
 
     public void setHeight(int height) {
         int width = canvas.getWidth();
-        this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        this.canvas = new BufferedImage(width, height * RESOLUTION, BufferedImage.TYPE_INT_ARGB);
         initContextAdapter();
     }
 
@@ -67,8 +69,9 @@ public class CanvasAdapter {
         context.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         //默认的线条样式改变
         context.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f));
+        context.scale(RESOLUTION,RESOLUTION);
         if (contextAdapter == null) {
-            this.contextAdapter = new ContextAdapter(context, this.canvas);
+            this.contextAdapter = new ContextAdapter(context, canvas);
         } else {
             this.contextAdapter.reset(context, this.canvas);
         }

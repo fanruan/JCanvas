@@ -20,9 +20,9 @@ public class V8Canvas extends V8Object {
                 if (parameters.length() == 2) {
                     int w = parameters.getInteger(0);
                     int h = parameters.getInteger(1);
-                    return new V8Canvas(v8, new HighPrecisionCanvas(w, h));
+                    return new V8Canvas(v8, new CanvasAdapter(w, h));
                 } else {
-                    return new V8Canvas(v8, new HighPrecisionCanvas());
+                    return new V8Canvas(v8, new CanvasAdapter());
                 }
             }
         });
