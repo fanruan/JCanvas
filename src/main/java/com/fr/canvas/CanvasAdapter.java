@@ -9,9 +9,9 @@ import java.awt.image.BufferedImage;
 
 public class CanvasAdapter {
 
-    private BufferedImage canvas;
+    protected BufferedImage canvas;
 
-    private ContextAdapter contextAdapter;
+    protected ContextAdapter contextAdapter;
 
     public CanvasAdapter() {
         this(200, 200);
@@ -35,9 +35,9 @@ public class CanvasAdapter {
 
     public void setAttribute(String attribute, int value) {
         if ("width".equals(attribute)) {
-            this.setWidth(value);
+            setWidth(value);
         } else if ("height".equals(attribute)) {
-            this.setHeight(value);
+            setHeight(value);
         }
     }
 
@@ -61,7 +61,7 @@ public class CanvasAdapter {
     }
 
     public void initContextAdapter() {
-        Graphics2D context = (Graphics2D) canvas.getGraphics();
+        Graphics2D context = canvas.createGraphics();
         context.setBackground(ColorsAdapter.TRANSPARENT);
         context.setColor(Color.BLACK); //默认绘图颜色设置为黑色
         context.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

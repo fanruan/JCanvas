@@ -11,10 +11,10 @@ import java.util.List;
 
 public class V8test extends TestCase {
 
-    public static void main(String[] args)   {
+    public static void main(String[] args) {
         V8 v8 = V8.createV8Runtime();
         V8Adapter.init(v8);
-        CanvasAdapter canvas = new CanvasAdapter();
+        CanvasAdapter canvas = new HighPrecisionCanvas();
         v8.executeVoidScript(V8Adapter.loadAdapterJS("/js/fx-adapter.js"));
         V8Canvas v8Canvas = new V8Canvas(v8, canvas);
         try{
@@ -23,7 +23,7 @@ public class V8test extends TestCase {
             v8.executeVoidScript(V8Adapter.loadAdapterJS("/js/van-analysis.js"));
             v8.executeVoidScript(V8Adapter.loadAdapterJS("/js/adaptor.js"));
             List<String> jsonPaths = new ArrayList<String>();
-            String beginPath = V8test.class.getResource("/").getPath().replace("test-classes","classes") + "json";
+            String beginPath = V8test.class.getResource("/").getPath().replace("test-classes", "classes") + "json";
             findFiles(beginPath, jsonPaths);
             for (String path : jsonPaths) {
                 try{
@@ -33,8 +33,8 @@ public class V8test extends TestCase {
                     v8.executeVoidScript("var chart = new Van.VanChart({width:712,height:725,container:canvas}, op.data)");
                     v8.executeVoidScript("chart.zr.refreshImmediately()");
                     String[] pathSplit = path.split("classes" + File.separator + "json");
-                    File imageFile = new File(pathSplit[0] + "Image" + pathSplit[1].replace("json","png"));
-                    if(!imageFile.exists()){
+                    File imageFile = new File(pathSplit[0] + "Image" + pathSplit[1].replace("json", "png"));
+                    if (!imageFile.exists()) {
                         imageFile.mkdirs();
                     }
                     ImageIO.write(canvas.getCanvas(), "PNG",
@@ -51,7 +51,7 @@ public class V8test extends TestCase {
             v8.release();
         }
     }
-
+    
     public static void findFiles(String beginPath, List<String> filePaths) {
         File homeDic = new File(beginPath);
         if (homeDic.exists()) {
