@@ -105,25 +105,31 @@ public class V8Context extends V8Object {
             }
         }, "arc");
 
+
         registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object receiver, V8Array parameters) {
-                V8Object dimen = new V8Object(v8);
-                Object str = parameters.get(0);
-                TextMetrics textMetrics;
-                if (str == null) {
-                    textMetrics = context.measureText("null");
-                } else {
-                    textMetrics = context.measureText(str.toString());
-                    if(str instanceof V8Object){
-                        ((V8Object) str).release();
+                if (parameters.length() > 0) {
+                    Object str = parameters.get(0);
+                    TextMetrics textMetrics;
+                    if (str == null) {
+                        textMetrics = context.measureText("null");
+                    } else {
+                        textMetrics = context.measureText(str.toString());
+                        if (str instanceof V8Object) {
+                            ((V8Object) str).release();
+                        }
                     }
+                    V8Object dimen = new V8Object(v8);
+                    dimen.registerJavaMethod(textMetrics, "getWidth", "getWidth", new Class[]{});
+                    V8Object proto = v8.getObject("NativeTextMetricsPrototype");
+                    dimen.setPrototype(proto);
+                    proto.release();
+                    return dimen;
+                } else {
+                    throw new IllegalArgumentException("Failed to execute 'createLinearGradient': 4 arguments required, but only "
+                            + parameters.length() + " present.");
                 }
-                dimen.registerJavaMethod(textMetrics, "getWidth", "getWidth", new Class[]{});
-                V8Object proto = v8.getObject("NativeTextMetricsPrototype");
-                dimen.setPrototype(proto);
-                proto.release();
-                return dimen;
             }
         }, "measureText");
 
@@ -316,7 +322,7 @@ public class V8Context extends V8Object {
                         int width = parameters.getInteger(3);
                         int height = parameters.getInteger(4);
                         context.drawImage(image, x, y, width, height);
-                    } else { //参数个数大与9个之间
+                    } else { //参数个数大与9个
                         int sx = parameters.getInteger(1);
                         int sy = parameters.getInteger(2);
                         int sWidth = parameters.getInteger(3);
