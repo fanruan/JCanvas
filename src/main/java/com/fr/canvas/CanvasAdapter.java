@@ -16,7 +16,7 @@ public class CanvasAdapter {
     private ContextAdapter contextAdapter;
 
     public CanvasAdapter() {
-        this(200, 200);
+        this(5, 5);
     }
 
     public CanvasAdapter(int width, int height) {

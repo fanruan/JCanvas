@@ -525,7 +525,7 @@ public class ContextAdapter {
         context.drawImage(img, x, y, width, height, null);
     }
 
-    public void drawImage(BufferedImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height) {
+    public void drawImage(BufferedImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height, boolean canvas) {
         if (sWidth < 0) {
             sx = sx + sWidth;
             sWidth = -sWidth;
@@ -534,8 +534,13 @@ public class ContextAdapter {
             sy = sy + sHeight;
             sHeight = -sHeight;
         }
-        ImageData imageData = getImageData(img, sx, sy, sWidth, sHeight);
-        BufferedImage buffer = new BufferedImage(sWidth, sHeight, BufferedImage.TYPE_INT_ARGB);
+        ImageData imageData;
+        if (!canvas) {
+            imageData = getImageData(img, sx, sy, sWidth, sHeight, 1); //非canvas的图片精度是正常的1倍精度
+        } else {
+            imageData = getImageData(img, sx, sy, sWidth, sHeight);
+        }
+        BufferedImage buffer = new BufferedImage(sWidth * CanvasAdapter.RESOLUTION, sHeight * CanvasAdapter.RESOLUTION, BufferedImage.TYPE_INT_ARGB);
         putImageData(buffer, imageData, 0, 0, 0, 0, sWidth, sHeight);
         drawImage(buffer, x, y, width, height);
     }
@@ -603,6 +608,10 @@ public class ContextAdapter {
     }
 
     private ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {
+        return getImageData(img, x, y, width, height, CanvasAdapter.RESOLUTION);
+    }
+
+    private ImageData getImageData(BufferedImage img, int x, int y, int width, int height, int resolution) {
         if (width < 0) {
             x = x + width;
             width = -width;
@@ -611,16 +620,16 @@ public class ContextAdapter {
             y = y + height;
             height = -height;
         }
-        int minX = Math.max(x * CanvasAdapter.RESOLUTION, 0);
-        int minY = Math.max(y * CanvasAdapter.RESOLUTION, 0);
-        int boundX = Math.min((x + width) * CanvasAdapter.RESOLUTION, img.getWidth());
-        int boundY = Math.min((y + height) * CanvasAdapter.RESOLUTION, img.getHeight());
+        int minX = Math.max(x * resolution, 0);
+        int minY = Math.max(y * resolution, 0);
+        int boundX = Math.min((x + width) * resolution, img.getWidth());
+        int boundY = Math.min((y + height) * resolution, img.getHeight());
         int[] data = new int[width * height * 4];
-        for (int j = minY; j < boundY; j = j + CanvasAdapter.RESOLUTION) {
-            for (int i = minX; i < boundX; i = i + CanvasAdapter.RESOLUTION) {
+        for (int j = minY; j < boundY; j = j + resolution) {
+            for (int i = minX; i < boundX; i = i + resolution) {
                 //距离除以2
-                int k = ((j - y * CanvasAdapter.RESOLUTION) * width
-                        / CanvasAdapter.RESOLUTION + (i - x * CanvasAdapter.RESOLUTION) / CanvasAdapter.RESOLUTION) * 4;
+                int k = ((j - y * resolution) * width
+                        / resolution + (i - x * resolution) / resolution) * 4;
                 int[] rgba = CanvasUtils.intColorToRGBA(img.getRGB(i, j));
                 data[k] = rgba[0];
                 data[k + 1] = rgba[1];
@@ -665,11 +674,26 @@ public class ContextAdapter {
                 int k = ((j - y * CanvasAdapter.RESOLUTION) * imageData.getWidth()
                         / CanvasAdapter.RESOLUTION + (i - x * CanvasAdapter.RESOLUTION) / CanvasAdapter.RESOLUTION) * 4;
                 int color = CanvasUtils.RGBAToIntColor(data[k], data[k + 1], data[k + 2], data[k + 3]);
-                img.setRGB(i, j, color);
-                img.setRGB(i + 1, j, color);
-                img.setRGB(i, j + 1, color);
-                img.setRGB(i + 1, j + 1, color);
+                setRGB(img, color, i, j, 1);
             }
+        }
+    }
+
+    private void setRGB(BufferedImage image, int color, int x, int y, int resolution) {
+        if (resolution > CanvasAdapter.RESOLUTION) {
+            return;
+        } else {
+            int x0 = x + resolution - 1;
+            int y0 = y + resolution - 1;
+            for (int i = 0; i < resolution; i++) {
+                if (i == resolution - 1) {
+                    image.setRGB(x0, y0, color);
+                } else {
+                    image.setRGB(x0, y + i, color);
+                    image.setRGB(x + i, y0, color);
+                }
+            }
+            setRGB(image, color, x, y, resolution + 1);
         }
     }
 
