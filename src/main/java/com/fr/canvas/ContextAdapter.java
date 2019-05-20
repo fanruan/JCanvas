@@ -525,7 +525,7 @@ public class ContextAdapter {
         context.drawImage(img, x, y, width, height, null);
     }
 
-    public void drawImage(BufferedImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height, boolean canvas) {
+    public void drawImage(BufferedImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height, int resolution) {
         if (sWidth < 0) {
             sx = sx + sWidth;
             sWidth = -sWidth;
@@ -535,11 +535,9 @@ public class ContextAdapter {
             sHeight = -sHeight;
         }
         ImageData imageData;
-        if (!canvas) {
-            imageData = getImageData(img, sx, sy, sWidth, sHeight, 1); //非canvas的图片精度是正常的1倍精度
-        } else {
-            imageData = getImageData(img, sx, sy, sWidth, sHeight);
-        }
+
+        imageData = getImageData(img, sx, sy, sWidth, sHeight, resolution);
+
         BufferedImage buffer = new BufferedImage(sWidth * CanvasAdapter.RESOLUTION, sHeight * CanvasAdapter.RESOLUTION, BufferedImage.TYPE_INT_ARGB);
         putImageData(buffer, imageData, 0, 0, 0, 0, sWidth, sHeight);
         drawImage(buffer, x, y, width, height);

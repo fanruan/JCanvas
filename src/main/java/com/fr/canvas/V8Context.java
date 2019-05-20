@@ -329,7 +329,6 @@ public class V8Context extends V8Object {
                             context.drawImage(image, x * CanvasAdapter.RESOLUTION, y * CanvasAdapter.RESOLUTION);
                             context.scale(CanvasAdapter.RESOLUTION, CanvasAdapter.RESOLUTION);
                         }
-
                     } else if (length < 9) {  //参数个数在5~8之间
                         int x = parameters.getInteger(1);
                         int y = parameters.getInteger(2);
@@ -345,7 +344,8 @@ public class V8Context extends V8Object {
                         int y = parameters.getInteger(6);
                         int width = parameters.getInteger(7);
                         int height = parameters.getInteger(8);
-                        context.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height, canvas);
+                        int resolution = canvas ? CanvasAdapter.RESOLUTION : 1;//非canvas的图片精度是正常的1倍精度
+                        context.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height, resolution);
                     }
                 } catch (Exception e) {
                     FineLoggerFactory.getLogger().error(e.getMessage(), e);
