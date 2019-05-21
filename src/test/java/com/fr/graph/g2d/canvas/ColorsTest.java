@@ -47,10 +47,4 @@ public class ColorsTest extends TestCase {
         Color color = ColorsAdapter.web(s);
         assertEquals(new Color(255, 0, 0), color);
     }
-
-    public void testFxColor2Color() {
-        javafx.scene.paint.Color fxColor = new javafx.scene.paint.Color(0.8, 0.8, 0.8, 1);
-        Color color = ColorsAdapter.fxColor2Color(fxColor);
-        assertEquals(new Color(204, 204, 204), color);
-    }
 }
