@@ -1,10 +1,11 @@
 package com.fr.graph.g2d.canvas;
 
+import com.fr.general.IOUtils;
 import com.fr.log.FineLoggerFactory;
 import com.fr.stable.StringUtils;
-import com.google.common.io.BaseEncoding;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +13,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.awt.image.BufferedImage;
 
 /**
  * 辅助处理canvas的图片绘制接口(drawImage)，处理canvas和image。
@@ -52,7 +52,7 @@ public class ImageUtils {
 
     private static BufferedImage createByBase64(String base64) throws IOException {
         String imageData = base64.split("base64,")[1];
-        byte[] data = BaseEncoding.base64().decode(imageData);
+        byte[] data = IOUtils.base64Decode(imageData);
         return ImageIO.read(new ByteArrayInputStream(data));
     }
 

@@ -1,6 +1,6 @@
 package com.fr.stable;
 
-import com.google.common.base.Objects;
+import java.util.Arrays;
 
 /**
  * @author richie
@@ -38,6 +38,6 @@ public class AssistUtils {
      */
     public static int hashCode(Object... args) {
 
-        return Objects.hashCode(args);
+        return Arrays.hashCode(args);
     }
 }

@@ -4,7 +4,6 @@ import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
-import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 
 import java.util.UUID;
@@ -12,23 +11,6 @@ import java.util.UUID;
 public class V8Canvas extends V8Object {
 
     private String id;
-
-    public static void register(final V8 v8) {
-        V8Function constructor = new V8Function(v8, new JavaCallback() {
-            @Override
-            public Object invoke(V8Object receiver, V8Array parameters) {
-                if (parameters.length() == 2) {
-                    int w = parameters.getInteger(0);
-                    int h = parameters.getInteger(1);
-                    return new V8Canvas(v8, new CanvasAdapter(w, h));
-                } else {
-                    return new V8Canvas(v8, new CanvasAdapter());
-                }
-            }
-        });
-        v8.add("Canvas", constructor);
-        constructor.release();
-    }
 
     public V8Canvas(final V8 v8, final CanvasAdapter canvas) {
         super(v8);
