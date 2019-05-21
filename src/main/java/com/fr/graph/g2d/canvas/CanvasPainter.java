@@ -10,6 +10,7 @@ import com.fr.log.FineLoggerFactory;
 import com.fr.stable.StringUtils;
 
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
 import java.io.InputStream;
 
 /**
@@ -17,7 +18,7 @@ import java.io.InputStream;
  * @version 10.0
  * Created by richie on 2019-05-21
  */
-public class CanvasPainter {
+public class CanvasPainter implements Closeable {
 
     /**
      * 生成用于构建Canvas画板的构建器
