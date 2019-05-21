@@ -58,10 +58,11 @@ public class ImageUtils {
 
     private static BufferedImage createByUrl(String strUrl) throws IOException {
         URL url = new URL(strUrl); //声明url对象
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection(); //打开连接
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection(); //打开连接
         connection.setDoOutput(true);
         InputStream stream = connection.getInputStream();
+        BufferedImage image = ImageIO.read(stream);
         connection.disconnect();
-        return ImageIO.read(stream);
+        return image;
     }
 }

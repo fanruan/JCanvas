@@ -5,6 +5,7 @@ import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
 import com.fr.canvas.log.FineLoggerFactory;
 
 import java.awt.Color;
@@ -90,11 +91,15 @@ public class V8Context extends V8Object {
                     double endAngle = parameters.getDouble(4);
                     boolean anticlockwise = false;
                     if (parameters.length() > 5) {
-                        Object anticlockwiseObject = parameters.get(5);
-                        if (anticlockwiseObject instanceof V8Object) {
-                            ((V8Object) anticlockwiseObject).release();
-                        } else {
-                            anticlockwise = (Boolean) anticlockwiseObject;
+                        int type = parameters.getType(5);
+                        if (type == V8Value.INTEGER || type == V8Value.DOUBLE) {
+                            anticlockwise = parameters.getDouble(5) != 0;
+                        } else if (type == V8Value.STRING) {
+                            anticlockwise = !"".equals(parameters.getString(5));
+                        } else if (type == V8Value.V8_OBJECT) {
+                            anticlockwise = true;
+                        } else if (type == V8Value.BOOLEAN) {
+                            anticlockwise = parameters.getBoolean(5);
                         }
                     }
                     context.arc(cx, cy, r, startAngle, endAngle, anticlockwise);
@@ -286,6 +291,7 @@ public class V8Context extends V8Object {
             @Override
             public void invoke(V8Object receiver, V8Array parameters) {
                 int length = parameters.length();
+                boolean canvas = false;
                 //至少需要三个参数
                 if (length < 3) {
                     throw new IllegalArgumentException("Failed to execute 'getImageData': 3 arguments required, but only "
@@ -297,6 +303,7 @@ public class V8Context extends V8Object {
                     V8Object v8Object = (V8Object) imageObj;
                     if (v8Object.contains("canvas_id")) {
                         //从另一个canvas绘制
+                        canvas = true;
                         image = ImageUtils.get(v8Object.getString("canvas_id"));
                         v8Object.release();
                     } else {
@@ -315,7 +322,13 @@ public class V8Context extends V8Object {
                     if (length < 5) {
                         int x = parameters.getInteger(1);
                         int y = parameters.getInteger(2);
-                        context.drawImage(image, x, y);
+                        if (!canvas) {
+                            context.drawImage(image, x, y);
+                        } else {
+                            context.scale(1.0 / CanvasAdapter.RESOLUTION, 1.0 / CanvasAdapter.RESOLUTION);
+                            context.drawImage(image, x * CanvasAdapter.RESOLUTION, y * CanvasAdapter.RESOLUTION);
+                            context.scale(CanvasAdapter.RESOLUTION, CanvasAdapter.RESOLUTION);
+                        }
                     } else if (length < 9) {  //参数个数在5~8之间
                         int x = parameters.getInteger(1);
                         int y = parameters.getInteger(2);
@@ -331,7 +344,8 @@ public class V8Context extends V8Object {
                         int y = parameters.getInteger(6);
                         int width = parameters.getInteger(7);
                         int height = parameters.getInteger(8);
-                        context.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height);
+                        int resolution = canvas ? CanvasAdapter.RESOLUTION : 1;//非canvas的图片精度是正常的1倍精度
+                        context.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height, resolution);
                     }
                 } catch (Exception e) {
                     FineLoggerFactory.getLogger().error(e.getMessage(), e);
