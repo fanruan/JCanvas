@@ -28,6 +28,14 @@ public class CanvasPainter implements Closeable {
         return new Builder();
     }
 
+    /**
+     * 生成用于构建Canvas画板的构建器，默认加载了用于预处理的内置JS
+     * @return 构建器
+     */
+    public static Builder newDefaultBuilder() {
+        return new Builder().prepare("/com/fr/graph/g2d/canvas/js/fx-adapter.js");
+    }
+
     private V8 v8 = V8.createV8Runtime();
     private StringBuilder sb = new StringBuilder();
     private CanvasAdapter canvas = new CanvasAdapter();

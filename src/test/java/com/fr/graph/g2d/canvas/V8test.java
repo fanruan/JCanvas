@@ -25,13 +25,12 @@ public class V8test extends TestCase {
 
     private static void runOne() throws Exception {
         List<String> jsonPaths = new ArrayList<String>();
-        String beginPath = V8test.class.getResource("/").getPath().replace("test-classes", "classes") + "json";
+        String beginPath = V8test.class.getResource("/").getPath() + "json";
         findFiles(beginPath, jsonPaths);
         for (String path : jsonPaths) {
             CanvasPainter painter = null;
             try {
-                painter = CanvasPainter.newBuilder()
-                        .prepare("/js/fx-adapter.js")
+                painter = CanvasPainter.newDefaultBuilder()
                         .loadAndExecute("/js/van-analysis.js", "/js/adaptor.js")
                         .loadText("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
                         .loadText("op.data.shared.animation = false;")

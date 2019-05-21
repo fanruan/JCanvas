@@ -16,6 +16,8 @@ function clearInterval(cancel) {
 
 var BI = {};
 
+var FR = {};
+
 var global = {};
 
 var window = {
