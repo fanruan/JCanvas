@@ -33,10 +33,10 @@ public class V8test extends TestCase {
                 painter = CanvasPainter.newBuilder()
                         .prepare("/js/fx-adapter.js")
                         .loadAndExecute("/js/van-analysis.js", "/js/adaptor.js")
-                        .load("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
-                        .load("op.data.shared.animation = false")
-                        .load("var chart = new Van.VanChart({width:712,height:725,container:canvas}, op.data)")
-                        .load("chart.zr.refreshImmediately()")
+                        .loadText("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
+                        .loadText("op.data.shared.animation = false;")
+                        .loadText("var chart = new Van.VanChart({width:712,height:725,container:canvas}, op.data);")
+                        .loadText("chart.zr.refreshImmediately();")
                         .build();
                 String[] pathSplit = path.split("classes" + File.separator + "json");
                 File imageFile = new File(pathSplit[0] + "Image" + pathSplit[1].replace("json", "png"));

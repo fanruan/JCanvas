@@ -19,6 +19,10 @@ import java.io.InputStream;
  */
 public class CanvasPainter {
 
+    /**
+     * 生成用于构建Canvas画板的构建器
+     * @return 构建器
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -27,7 +31,7 @@ public class CanvasPainter {
     private StringBuilder sb = new StringBuilder();
     private CanvasAdapter canvas = new CanvasAdapter();
 
-    public CanvasPainter() {
+    private CanvasPainter() {
         register(v8);
     }
 
@@ -82,10 +86,6 @@ public class CanvasPainter {
 
         private CanvasPainter painter = new CanvasPainter();
 
-        public Builder() {
-
-        }
-
         public Builder prepare(String filePath) {
             String content = readFileBody(filePath);
             painter.execute(content);
@@ -108,7 +108,7 @@ public class CanvasPainter {
             return this;
         }
 
-        public Builder load(String... strings) {
+        public Builder loadText(String... strings) {
             for (String text : strings) {
                 painter.add(text);
             }
