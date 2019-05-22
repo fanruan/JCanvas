@@ -603,6 +603,9 @@ public class ContextAdapter {
 
     public void dispose() {
         context.dispose();
+        context = null;
+        canvas = null;
+
     }
 
     private ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {

@@ -62,6 +62,7 @@ public class V8Canvas extends V8Object {
         }, "setAttribute");
         registerJavaMethod(canvas, "getWidth", "getWidth", new Class<?>[]{});
         registerJavaMethod(canvas, "getHeight", "getHeight", new Class<?>[]{});
+        registerJavaMethod(canvas, "dispose", "dispose", new Class<?>[]{});
         //生成id并缓存
         String id = UUID.randomUUID().toString();
         this.id = id;
