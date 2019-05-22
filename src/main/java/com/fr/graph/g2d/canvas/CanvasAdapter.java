@@ -76,4 +76,11 @@ public class CanvasAdapter {
             this.contextAdapter.reset(context, this.canvas);
         }
     }
+
+    public void dispose() {
+        this.canvas = null;
+        if (this.contextAdapter != null) {
+            this.contextAdapter.dispose();
+        }
+    }
 }
