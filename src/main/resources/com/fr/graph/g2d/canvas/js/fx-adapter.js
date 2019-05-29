@@ -1,27 +1,11 @@
-function setTimeout() {
+function do_nothing() {
 
-};
+}
 
-function clearTimeout(cancel) {
+setTimeout = clearTimeout = setInterval = clearInterval = do_nothing;
 
-};
-
-function setInterval(fn, delay /* [, args...] */) {
-
-};
-
-function clearInterval(cancel) {
-
-};
-
-var BI = {};
-
-var FR = {};
-
-var global = {};
 
 var window = {
-    BI: BI,
     devicePixelRatio: 1,
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
@@ -29,32 +13,9 @@ var window = {
     clearInterval: clearInterval
 };
 
-var document = {
-    createElement: function () {
-        return {
-            getContext: true,
-            style : {}
-        }
-
-    },
-
-    documentElement: {
-        style: {}
-    }
-};
-
-var navigator = {
-
-    userAgent: '',
-
-    platform: ''
-
-};
 
 var console = {
-    log: function (info) {
-        this.log(info);
-    }
+    log: do_nothing
 };
 
 NativeCanvasPrototype = {
