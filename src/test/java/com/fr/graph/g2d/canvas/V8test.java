@@ -16,7 +16,7 @@ public class V8test extends TestCase {
 
     @Ignore
     public static void main(String[] args) {
-        try {
+        try{
             runOne();
         } catch (Exception e) {
             FineLoggerFactory.getLogger().error(e.getMessage(), e);
@@ -29,9 +29,9 @@ public class V8test extends TestCase {
         findFiles(beginPath, jsonPaths);
         for (String path : jsonPaths) {
             CanvasPainter painter = null;
-            try {
+            try{
                 painter = CanvasPainter.newDefaultBuilder()
-                        .loadAndExecute("/js/van-analysis.js", "/js/adaptor.js")
+                        .loadAndExecute("/js/van-adapter", "/js/van-analysis.js", "/js/adaptor.js")
                         .loadText("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
                         .loadText("op.data.shared.animation = false;")
                         .loadText("var chart = new Van.VanChart({width:712,height:725,container:canvas}, op.data);")

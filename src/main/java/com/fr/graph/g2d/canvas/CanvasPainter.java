@@ -9,9 +9,9 @@ import com.fr.general.IOUtils;
 import com.fr.log.FineLoggerFactory;
 import com.fr.stable.StringUtils;
 
-import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.InputStream;
+import java.awt.image.BufferedImage;
 
 /**
  * @author richie
@@ -22,6 +22,7 @@ public class CanvasPainter implements Closeable {
 
     /**
      * 生成用于构建Canvas画板的构建器
+     *
      * @return 构建器
      */
     public static Builder newBuilder() {
@@ -30,6 +31,7 @@ public class CanvasPainter implements Closeable {
 
     /**
      * 生成用于构建Canvas画板的构建器，默认加载了用于预处理的内置JS
+     *
      * @return 构建器
      */
     public static Builder newDefaultBuilder() {
@@ -86,6 +88,37 @@ public class CanvasPainter implements Closeable {
         sb.setLength(0);
     }
 
+    public void acquire() {
+        v8.getLocker().acquire();
+    }
+
+    public void release() {
+        v8.getLocker().release();
+    }
+
+    public Object executeFunction(String functionName, Object... parameters) {
+        return v8.executeJSFunction(functionName, parameters);
+    }
+
+    public BufferedImage paint(String functionName, Object... parameters) {
+        CanvasAdapter canvas = new CanvasAdapter();
+        V8Canvas v8Canvas = new V8Canvas(v8, canvas);
+        Object[] newParameters = new Object[parameters.length + 1];
+        try{
+            newParameters[0] = v8Canvas;
+            System.arraycopy(parameters, 0, newParameters, 1, parameters.length);
+            Object result = v8.executeJSFunction(functionName, newParameters);
+            if (result instanceof V8Object) {
+                ((V8Object) result).release();
+            }
+        } finally {
+            v8Canvas.release();
+        }
+        BufferedImage image = canvas.getCanvas();
+        canvas.dispose();
+        return image;
+    }
+
     public void close() {
         v8.release(true);
     }
@@ -129,7 +162,7 @@ public class CanvasPainter implements Closeable {
             String script = StringUtils.EMPTY;
             try {
                 script = IOUtils.inputStream2String(in);
-            }  catch (Exception e) {
+            } catch (Exception e) {
                 FineLoggerFactory.getLogger().error(e.getMessage(), e);
             }
             return script;
