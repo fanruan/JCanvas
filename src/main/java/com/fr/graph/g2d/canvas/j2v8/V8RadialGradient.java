@@ -1,9 +1,10 @@
-package com.fr.graph.g2d.canvas;
+package com.fr.graph.g2d.canvas.j2v8;
 
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.fr.graph.g2d.canvas.RadialGradientAdapter;
 
 public class V8RadialGradient extends V8Object {
 

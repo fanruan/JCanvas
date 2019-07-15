@@ -1,16 +1,17 @@
 package com.fr.graph.g2d.canvas;
 
-import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
-import com.eclipsesource.v8.V8Function;
-import com.eclipsesource.v8.V8Object;
 import com.fr.general.IOUtils;
+import com.fr.graph.g2d.canvas.j2v8.V8Painter;
+import com.fr.graph.g2d.canvas.nashorn.NashornPainter;
 import com.fr.log.FineLoggerFactory;
 import com.fr.stable.StringUtils;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 
 /**
@@ -18,7 +19,13 @@ import java.awt.image.BufferedImage;
  * @version 10.0
  * Created by richie on 2019-05-21
  */
-public class CanvasPainter implements Closeable {
+public abstract class CanvasPainter implements Closeable {
+
+    public final static boolean SUPPORT_J2V8 = isSupportJ2v8();
+
+    private StringBuilder sb = new StringBuilder();
+
+    private static ConcurrentHashMap<String, Font> loadedFonts = new ConcurrentHashMap<String, Font>();
 
     /**
      * 生成用于构建Canvas画板的构建器
@@ -26,7 +33,11 @@ public class CanvasPainter implements Closeable {
      * @return 构建器
      */
     public static Builder newBuilder() {
-        return new Builder();
+        return new Builder(JsEngineType.J2V8_ENGINE);
+    }
+
+    public static Builder newBuilder(JsEngineType engineType) {
+        return new Builder(engineType);
     }
 
     /**
@@ -34,111 +45,101 @@ public class CanvasPainter implements Closeable {
      *
      * @return 构建器
      */
-    public static Builder newDefaultBuilder() {
-        return new Builder().prepare("/com/fr/graph/g2d/canvas/js/fx-adapter.js");
+    public static Builder newDefaultBuilder() throws Exception {
+        if (SUPPORT_J2V8) {
+            return new Builder(JsEngineType.J2V8_ENGINE).prepare("/com/fr/graph/g2d/canvas/js/fx-adapter.js");
+        } else {
+            return new Builder(JsEngineType.NASHORN_ENGINE).prepare("/com/fr/graph/g2d/canvas/js/nashorn-adapter.js");
+        }
+
     }
 
-    private V8 v8 = V8.createV8Runtime();
-    private StringBuilder sb = new StringBuilder();
-    private CanvasAdapter canvas = new CanvasAdapter();
-
-    private CanvasPainter() {
-        register(v8);
+    public static boolean isSupportJ2v8() {
+        V8 v8;
+        try {
+            v8 = V8.createV8Runtime();
+        } catch (IllegalStateException ex) {
+            return false;
+        }
+        v8.release(true);
+        return true;
     }
 
-    public static void register(final V8 v8) {
-        V8Function constructor = new V8Function(v8, new JavaCallback() {
-            @Override
-            public Object invoke(V8Object receiver, V8Array parameters) {
-                if (parameters.length() == 2) {
-                    int w = parameters.getInteger(0);
-                    int h = parameters.getInteger(1);
-                    return new V8Canvas(v8, new CanvasAdapter(w, h));
-                } else {
-                    return new V8Canvas(v8, new CanvasAdapter());
-                }
-            }
-        });
-        v8.add("Canvas", constructor);
-        constructor.release();
+    public static Font loadFont(String fontName, File file) {
+        Font font = null;
+        try {
+            font = Font.createFont(Font.TRUETYPE_FONT, file);
+            loadedFonts.put(fontName.toLowerCase(), font);
+        } catch (Exception ex) {
+            FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
+        }
+        return font;
     }
 
-    public BufferedImage paint() {
-        execute();
-        return canvas.getCanvas();
+    public static Font getFont(String fontName) {
+        return loadedFonts.get(fontName.toLowerCase());
     }
 
-    private void initCanvas() {
-        V8Canvas v8Canvas = new V8Canvas(v8, canvas);
-        v8.add("canvas", v8Canvas);
-        v8Canvas.release();
+    public static boolean hasFont(String fontName) {
+        return loadedFonts.containsKey(fontName.toLowerCase());
     }
 
-    private void execute(String script) {
-        v8.executeVoidScript(script);
+
+    public StringBuilder getSb() {
+        return sb;
     }
 
-    private void add(String script) {
+    public void add(String script) {
         sb.append(script);
         sb.append(";");
     }
 
-    private void execute() {
-        v8.executeVoidScript(sb.toString());
-        sb.setLength(0);
-    }
+    abstract public void initCanvas();
 
-    public void acquire() {
-        v8.getLocker().acquire();
-    }
+    abstract public void execute(String script) throws Exception;
 
-    public void release() {
-        v8.getLocker().release();
-    }
+    abstract public BufferedImage paint() throws Exception;
 
-    public Object executeFunction(String functionName, Object... parameters) {
-        return v8.executeJSFunction(functionName, parameters);
-    }
+    abstract public Object executeFunction(String functionName, Object... parameters) throws Exception;
 
-    public BufferedImage paint(String functionName, Object... parameters) {
-        CanvasAdapter canvas = new CanvasAdapter();
-        V8Canvas v8Canvas = new V8Canvas(v8, canvas);
-        Object[] newParameters = new Object[parameters.length + 1];
-        try{
-            newParameters[0] = v8Canvas;
-            System.arraycopy(parameters, 0, newParameters, 1, parameters.length);
-            Object result = v8.executeJSFunction(functionName, newParameters);
-            if (result instanceof V8Object) {
-                ((V8Object) result).release();
-            }
-        } finally {
-            v8Canvas.release();
-        }
-        BufferedImage image = canvas.getCanvas();
-        canvas.dispose();
-        return image;
-    }
+    abstract public BufferedImage paint(String functionName, Object... parameters) throws Exception;
 
     public void close() {
-        v8.release(true);
-    }
 
+    }
 
     public static class Builder {
 
-        private CanvasPainter painter = new CanvasPainter();
+        private CanvasPainter painter;
 
-        public Builder prepare(String filePath) {
+        public Builder(JsEngineType engineType) {
+            switch (engineType) {
+                case NASHORN_ENGINE:
+                    painter = new NashornPainter();
+                    break;
+                default:
+                    painter = new V8Painter();
+            }
+        }
+
+        public Builder prepare(String filePath) throws Exception {
             String content = readFileBody(filePath);
             painter.execute(content);
             painter.initCanvas();
             return this;
         }
 
-        public Builder loadAndExecute(String... filePath) {
+        public Builder loadAndExecute(String... filePath) throws Exception {
             for (String path : filePath) {
                 String content = readFileBody(path);
                 painter.execute(content);
+            }
+            return this;
+        }
+
+        public Builder loadTextAndExecute(String... strings) throws Exception {
+            for (String text : strings) {
+                painter.execute(text);
             }
             return this;
         }
@@ -172,4 +173,5 @@ public class CanvasPainter implements Closeable {
             return painter;
         }
     }
+
 }

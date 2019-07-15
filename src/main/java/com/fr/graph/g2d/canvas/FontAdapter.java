@@ -2,10 +2,15 @@ package com.fr.graph.g2d.canvas;
 
 import com.fr.graph.g2d.canvas.constant.CSS;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 
 public class FontAdapter {
 
@@ -21,12 +26,23 @@ public class FontAdapter {
 
     public static Map<String, Font> fontMap = new ConcurrentHashMap<String, Font>();
 
+    public static Set<String> availableFontFamilyNames;
+
     static {
         fontStyle = new HashMap<String, Integer>();
-
         fontStyle.put(BOLD, new Integer(Font.BOLD));
         fontStyle.put(OBLIQUE, new Integer(Font.ITALIC));
         fontStyle.put(ITALIC, new Integer(Font.ITALIC));
+
+
+        //加载可用字体，用英文显示
+        String[] familyNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(Locale.ENGLISH);
+        //转换为小写
+        for (int i = 0; i < familyNames.length; i++) {
+            familyNames[i] = familyNames[i].toLowerCase();
+        }
+        availableFontFamilyNames = new HashSet<String>
+                (Arrays.asList(familyNames));
     }
 
     public static Font processFont(String font) {
@@ -37,6 +53,7 @@ public class FontAdapter {
         int style = Font.PLAIN;
         int size = DEFAULT_SIZE;
         String name = "DIALOG";
+        Font f = null;
         for (int i = 0; i < styleAndRest.length; i++) {
             String rule = styleAndRest[i];
             if (rule.equalsIgnoreCase(ITALIC) || rule.equalsIgnoreCase(OBLIQUE) || rule.equalsIgnoreCase(BOLD)) {
@@ -52,12 +69,26 @@ public class FontAdapter {
                         rest = rest.replaceAll("'", "");
                         s.append(rest).append(" ");
                     }
-                    name = s.delete(s.length() - 1, s.length()).toString();
+                    String[] fontNames = s.delete(s.length() - 1, s.length()).toString().split(",");
+                    for (String fontName : fontNames) {
+                        //手动加载的字体
+                        if (CanvasPainter.hasFont(fontName)) {
+                            f = CanvasPainter.getFont(fontName);
+                            break;
+                        } else if (availableFontFamilyNames.contains(fontName.toLowerCase())) {
+                            name = fontName;
+                            break;
+                        }
+                    }
                 }
                 break;
             }
         }
-        Font f = new Font(name, style, size);
+        if (f == null) {
+            f = new Font(name, style, size);
+        } else {
+            f = f.deriveFont(style, size);
+        }
         fontMap.put(font, f);
         return f;
     }

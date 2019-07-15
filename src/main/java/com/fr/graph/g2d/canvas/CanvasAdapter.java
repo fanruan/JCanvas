@@ -71,10 +71,14 @@ public class CanvasAdapter {
         context.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f));
         context.scale(RESOLUTION, RESOLUTION);
         if (contextAdapter == null) {
-            this.contextAdapter = new ContextAdapter(context, canvas);
+            this.contextAdapter = createContextAdapter(context, canvas);
         } else {
             this.contextAdapter.reset(context, this.canvas);
         }
+    }
+
+    public ContextAdapter createContextAdapter(Graphics2D context, BufferedImage canvas) {
+        return new ContextAdapter(context, canvas);
     }
 
     public void dispose() {

@@ -2,6 +2,7 @@ package com.fr.graph.g2d.canvas;
 
 import com.eclipsesource.v8.V8;
 import com.fr.general.IOUtils;
+import com.fr.graph.g2d.canvas.j2v8.V8Canvas;
 import com.fr.log.FineLoggerFactory;
 import junit.framework.TestCase;
 import org.junit.Ignore;
@@ -16,7 +17,7 @@ public class V8test extends TestCase {
 
     @Ignore
     public static void main(String[] args) {
-        try{
+        try {
             runOne();
         } catch (Exception e) {
             FineLoggerFactory.getLogger().error(e.getMessage(), e);
@@ -29,7 +30,7 @@ public class V8test extends TestCase {
         findFiles(beginPath, jsonPaths);
         for (String path : jsonPaths) {
             CanvasPainter painter = null;
-            try{
+            try {
                 painter = CanvasPainter.newDefaultBuilder()
                         .loadAndExecute("/js/van-adapter", "/js/van-analysis.js", "/js/adaptor.js")
                         .loadText("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
@@ -45,7 +46,7 @@ public class V8test extends TestCase {
                 ImageIO.write(painter.paint(), "PNG",
                         imageFile);
             } catch (Exception e) {
-                throw e;
+                e.printStackTrace();
             } finally {
                 if (painter != null) {
                     painter.close();
@@ -60,7 +61,7 @@ public class V8test extends TestCase {
         CanvasAdapter canvas = new CanvasAdapter();
         v8.executeVoidScript(IOUtils.readResourceAsString("/js/fx-adapter.js"));
         V8Canvas v8Canvas = new V8Canvas(v8, canvas);
-        try{
+        try {
             v8.add("canvas", v8Canvas);
             v8Canvas.release();
             v8.executeVoidScript(IOUtils.readResourceAsString("/js/van-analysis.js"));
@@ -69,7 +70,7 @@ public class V8test extends TestCase {
             String beginPath = V8test.class.getResource("/").getPath().replace("test-classes", "classes") + "json";
             findFiles(beginPath, jsonPaths);
             for (String path : jsonPaths) {
-                try{
+                try {
                     String json = IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json")));
                     v8.executeVoidScript("var op = " + json);
                     v8.executeVoidScript("op.data.shared.animation = false");

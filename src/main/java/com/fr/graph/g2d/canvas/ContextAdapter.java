@@ -64,6 +64,14 @@ public class ContextAdapter {
         stateStack = new LinkedList<CanvasState>();
     }
 
+    public void setFillPaint(Paint fillPaint) {
+        this.fillPaint = fillPaint;
+    }
+
+    public void setStrokePaint(Paint strokePaint) {
+        this.strokePaint = strokePaint;
+    }
+
     public Paint getFillPaint() {
         return fillPaint;
     }
@@ -435,19 +443,32 @@ public class ContextAdapter {
     }
 
     private void drawText(String text, float x, float y, boolean isFill) {
-        if (!StringUtils.isEmpty(text)) {
-            x = calAlign(text, x);
-            y = calBaseline(y);
-            //绘制实心文字
-            if (isFill) {
-                context.drawString(text, x, y);
+        if (StringUtils.isEmpty(text)) {
+            return;
+        }
+        x = calAlign(text, x);
+        y = calBaseline(y);
+        //CHART-9274 解决汉字和.组合时候导致所有的.均绘制不出来的问题。
+        boolean hasPoint = text.indexOf(".") > 0;
+        String strBegin = hasPoint ? text.substring(0, text.indexOf(".")) : text;
+        String strEnd = hasPoint ? text.substring(text.indexOf(".")) : "";
+        //绘制实心字体
+        if (isFill) {
+            context.drawString(strBegin, x, y);
+            if (StringUtils.isNotEmpty(strEnd)) {
+                TextMetrics TextMetrics = measureText(strBegin);
+                context.drawString(strEnd, x + TextMetrics.getWidth(), y);
             }
-            //绘制空心文字
-            else {
-                GlyphVector glyphVector = context.getFont().createGlyphVector(context.getFontMetrics().getFontRenderContext(), text);
-                Shape shape = glyphVector.getOutline(x, y);
-                context.draw(shape);
-            }
+        }
+        //绘制空心文字
+        else {
+            GlyphVector strBeginVector = context.getFont().createGlyphVector(context.getFontMetrics().getFontRenderContext(), strBegin);
+            GlyphVector strEndVector = context.getFont().createGlyphVector(context.getFontMetrics().getFontRenderContext(), strEnd);
+            Shape strBeginShape = strBeginVector.getOutline(x, y);
+            TextMetrics TextMetrics = measureText(strBegin);
+            Shape strEndShape = strEndVector.getOutline(x + TextMetrics.getWidth(), y);
+            context.draw(strBeginShape);
+            context.draw(strEndShape);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.fr.graph.g2d.canvas;
+package com.fr.graph.g2d.canvas.j2v8;
 
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
@@ -6,6 +6,14 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
+import com.fr.graph.g2d.canvas.CanvasAdapter;
+import com.fr.graph.g2d.canvas.CanvasUtils;
+import com.fr.graph.g2d.canvas.ContextAdapter;
+import com.fr.graph.g2d.canvas.ImageData;
+import com.fr.graph.g2d.canvas.ImageUtils;
+import com.fr.graph.g2d.canvas.LinearGradientAdapter;
+import com.fr.graph.g2d.canvas.RadialGradientAdapter;
+import com.fr.graph.g2d.canvas.TextMetrics;
 import com.fr.log.FineLoggerFactory;
 
 import java.awt.Color;
