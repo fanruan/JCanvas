@@ -32,7 +32,7 @@ public class V8test extends TestCase {
             CanvasPainter painter = null;
             try {
                 painter = CanvasPainter.newDefaultBuilder()
-                        .loadAndExecute("/js/van-adapter", "/js/van-analysis.js", "/js/adaptor.js")
+                        .loadAndExecute("/js/van-adapter.js", "/js/van-analysis.js", "/js/adaptor.js")
                         .loadText("var op=" + IOUtils.readResourceAsString(path.substring(path.indexOf(File.separator + "json"))))
                         .loadText("op.data.shared.animation = false;")
                         .loadText("var chart = new Van.VanChart({width:712,height:725,container:canvas}, op.data);")
