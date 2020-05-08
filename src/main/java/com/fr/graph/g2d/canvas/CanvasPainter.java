@@ -61,7 +61,7 @@ public abstract class CanvasPainter implements Closeable {
         } catch (IllegalStateException ex) {
             return false;
         }
-        v8.release(true);
+        v8.close();
         return true;
     }
 
@@ -69,6 +69,17 @@ public abstract class CanvasPainter implements Closeable {
         Font font = null;
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, file);
+            loadedFonts.put(fontName.toLowerCase(), font);
+        } catch (Exception ex) {
+            FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
+        }
+        return font;
+    }
+    
+    public static Font loadFont(String fontName, InputStream inputStream) {
+        Font font = null;
+        try {
+            font = Font.createFont(Font.TRUETYPE_FONT, inputStream);
             loadedFonts.put(fontName.toLowerCase(), font);
         } catch (Exception ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);

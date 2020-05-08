@@ -10,6 +10,7 @@ import com.fr.graph.g2d.canvas.CanvasAdapter;
 import com.fr.graph.g2d.canvas.CanvasUtils;
 import com.fr.graph.g2d.canvas.ContextAdapter;
 import com.fr.graph.g2d.canvas.ImageData;
+import com.fr.graph.g2d.canvas.ImageProvider;
 import com.fr.graph.g2d.canvas.ImageUtils;
 import com.fr.graph.g2d.canvas.LinearGradientAdapter;
 import com.fr.graph.g2d.canvas.RadialGradientAdapter;
@@ -25,9 +26,13 @@ import java.awt.image.BufferedImage;
 public class V8Context extends V8Object {
     private ContextAdapter context;
 
-    public V8Context(V8 v8, ContextAdapter context) {
+    private V8Painter v8Painter;
+
+    public V8Context(V8Painter v8Painter, V8 v8, ContextAdapter context) {
         super(v8);
         this.context = context;
+        this.v8Painter = v8Painter;
+
         //绑定属性
         initPrototype();
         //绑定反射获得的方法
@@ -78,7 +83,6 @@ public class V8Context extends V8Object {
         registerJavaMethod(context, "fillText", "fillText", new Class[]{String.class, double.class, double.class});
         registerJavaMethod(context, "strokeText", "strokeText", new Class[]{String.class, double.class, double.class});
         registerJavaMethod(context, "setGlobalCompositeOperation", "setGlobalCompositeOperation", new Class[]{String.class});
-        registerJavaMethod(context, "setGlobalAlpha", "setGlobalAlpha", new Class[]{double.class});
         registerJavaMethod(context, "restore", "restore", new Class[]{});
         registerJavaMethod(context, "transform", "transform", new Class[]{double.class, double.class, double.class, double.class, double.class, double.class});
     }
@@ -87,6 +91,23 @@ public class V8Context extends V8Object {
      * 增加自动生成的绑定中不包含的接口或者需要适配的接口
      */
     private void initAdapterMethod() {
+
+        this.registerJavaMethod(new JavaCallback() {
+            public Object invoke(V8Object receiver, V8Array parameters) {
+                if (parameters.length() > 0) {
+                    int type = parameters.getType(0);
+                    if (type == V8Value.INTEGER || type == V8Value.DOUBLE) {
+                        return V8Context.this.context.setGlobalAlpha(parameters.getDouble(0));
+                    } else if (type == V8Value.STRING) {
+                        return V8Context.this.context.setGlobalAlpha(parameters.getString(0));
+                    } else {
+                        throw new IllegalArgumentException("Wrong Parameter Type");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Failed to execute 'setGlobalAlpha': 1 arguments required, but only " + parameters.length() + " present.");
+                }
+            }
+        }, "setGlobalAlpha");
 
         registerJavaMethod(new JavaVoidCallback() {
             @Override
@@ -183,6 +204,26 @@ public class V8Context extends V8Object {
             }
 
         }, "createRadialGradient");
+
+        registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object receiver, V8Array parameters) {
+                if (parameters.length() > 0) {
+                    V8Array array = parameters.getArray(0);
+                    int length = array.length();
+                    float[] dash = new float[length];
+                    for (int i = 0; i < length; i++) {
+                        dash[i] = (float) array.getDouble(i);
+                    }
+                    context.setLineDash(dash);
+                    array.close();
+                } else {
+                    throw new IllegalArgumentException("Failed to execute 'setLineDash': 1 arguments required, but only "
+                            + parameters.length() + " present.");
+                }
+            }
+
+        }, "setLineDash");
 
         registerJavaMethod(new JavaCallback() {
             @Override
@@ -309,10 +350,11 @@ public class V8Context extends V8Object {
                 BufferedImage image;
                 if (imageObj instanceof V8Object) {
                     V8Object v8Object = (V8Object) imageObj;
-                    if (v8Object.contains("canvas_id")) {
-                        //从另一个canvas绘制
-                        canvas = true;
-                        image = ImageUtils.get(v8Object.getString("canvas_id"));
+                    ImageProvider imageProvider = v8Painter.getImageMap().get(v8Object);
+                    if (imageProvider != null) {
+                        canvas = imageProvider.isCanvas();
+                        image = imageProvider.getImage();
+                        imageProvider.dispose();
                         v8Object.release();
                     } else {
                         v8Object.release();
@@ -322,10 +364,7 @@ public class V8Context extends V8Object {
                     String url = (String) imageObj;
                     image = ImageUtils.getOrCreate(url);
                 }
-                if (image == null) {
-                    throw new IllegalArgumentException("Wrong Image resources");
-                }
-                try{
+                try {
                     //参数个数在3~4之间
                     if (length < 5) {
                         int x = parameters.getInteger(1);

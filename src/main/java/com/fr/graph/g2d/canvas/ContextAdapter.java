@@ -25,7 +25,7 @@ public class ContextAdapter {
 
     public static final int MISMATCH = -1;
 
-    private Graphics2D context;
+    protected Graphics2D context;
 
     private BufferedImage canvas;
 
@@ -45,6 +45,9 @@ public class ContextAdapter {
 
     private float[] coords = new float[6];
 
+    private Color SHADOW = new Color(0, 0, 0, 64);
+
+
     public ContextAdapter(Graphics2D context, BufferedImage canvas) {
         init(context, canvas);
     }
@@ -60,7 +63,7 @@ public class ContextAdapter {
         this.strokePaint = Color.BLACK;
         textAlign = TextAlignAdapter.LEFT;
         textBaseline = TextBaselineAdapter.ALPHABETIC;
-        path = new Path2D.Double();
+        path = new Path2D.Float();
         stateStack = new LinkedList<CanvasState>();
     }
 
@@ -182,7 +185,7 @@ public class ContextAdapter {
         coords[0] = (float) path.getCurrentPoint().getX();
         coords[1] = (float) path.getCurrentPoint().getY();
         double[] doubleCoords = new double[]{coords[0], coords[1]};
-        try{
+        try {
             context.getTransform().inverseTransform(doubleCoords, 0, doubleCoords, 0, 1);
         } catch (Exception e) {
             return false;
@@ -323,7 +326,7 @@ public class ContextAdapter {
     }
 
     private void draw(boolean isFill) {
-        try{
+        try {
             AffineTransform af = context.getTransform().createInverse();
             Path2D inversePath = new Path2D.Double();
             inversePath.append(path.getPathIterator(af), false);
@@ -348,7 +351,7 @@ public class ContextAdapter {
         int cap = LineCapAdapter.parse(lineCap);
         if (cap != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
-            context.setStroke(new BasicStroke(stroke.getLineWidth(), cap, stroke.getLineJoin(), stroke.getMiterLimit()));
+            context.setStroke(new BasicStroke(stroke.getLineWidth(), cap, stroke.getLineJoin(), stroke.getMiterLimit(), stroke.getDashArray(), stroke.getDashPhase()));
         }
         BasicStroke strokeState = (BasicStroke) context.getStroke();
         return LineJoinAdapter.valueOf(strokeState.getLineJoin());
@@ -358,7 +361,7 @@ public class ContextAdapter {
         int join = LineJoinAdapter.parse(lineJoin);
         if (join != MISMATCH) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
-            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), join, stroke.getMiterLimit()));
+            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), join, stroke.getMiterLimit(), stroke.getDashArray(), stroke.getDashPhase()));
         }
         BasicStroke strokeState = (BasicStroke) context.getStroke();
         return LineJoinAdapter.valueOf(strokeState.getLineJoin());
@@ -367,7 +370,7 @@ public class ContextAdapter {
     public double setLineWidth(double lineWidth) {
         if (lineWidth > 0) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
-            context.setStroke(new BasicStroke((float) lineWidth, stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit()));
+            context.setStroke(new BasicStroke((float) lineWidth, stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), stroke.getDashArray(), stroke.getDashPhase()));
         }
         BasicStroke strokeState = (BasicStroke) context.getStroke();
         return strokeState.getLineWidth();
@@ -376,11 +379,18 @@ public class ContextAdapter {
     public double setMiterLimit(double miterLimit) {
         if (miterLimit > 0) {
             BasicStroke stroke = (BasicStroke) context.getStroke();
-            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), (float) miterLimit));
+            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), (float) miterLimit, stroke.getDashArray(), stroke.getDashPhase()));
         }
         BasicStroke strokeState = (BasicStroke) context.getStroke();
         return strokeState.getMiterLimit();
 
+    }
+
+    public void setLineDash(float[] dash) {
+        if (dash.length > 0) {
+            BasicStroke stroke = (BasicStroke) context.getStroke();
+            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), dash, 0));
+        }
     }
 
     public void scale(double x, double y) {
@@ -433,6 +443,8 @@ public class ContextAdapter {
     }
 
     public void fillText(String text, double x, double y) {
+        context.setPaint(SHADOW);
+        drawText(text, (float) x, (float) y, true);
         beforeFill();
         drawText(text, (float) x, (float) y, true);
     }
@@ -521,6 +533,10 @@ public class ContextAdapter {
         return CompositeAdapter.valueOf(compositeState.getRule());
     }
 
+    public double setGlobalAlpha(String alpha) {
+        return setGlobalAlpha(Double.parseDouble(alpha));
+    }
+
     public double setGlobalAlpha(double alpha) {
         if (alpha <= 1.0 || alpha >= 0) {
             AlphaComposite composite = (AlphaComposite) context.getComposite();
@@ -547,6 +563,9 @@ public class ContextAdapter {
     }
 
     public void drawImage(BufferedImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height, int resolution) {
+        if (img == null) {
+            return;
+        }
         if (sWidth < 0) {
             sx = sx + sWidth;
             sWidth = -sWidth;
@@ -614,7 +633,7 @@ public class ContextAdapter {
     }
 
     public void out(String file) {
-        try{
+        try {
             ImageIO.write(canvas, "PNG", new File(file));
             context.dispose();
         } catch (Exception ex) {

@@ -28,6 +28,8 @@ public class FontAdapter {
 
     public static Set<String> availableFontFamilyNames;
 
+    public static final char CHINESE = '测';
+
     static {
         fontStyle = new HashMap<String, Integer>();
         fontStyle.put(BOLD, new Integer(Font.BOLD));
@@ -36,13 +38,22 @@ public class FontAdapter {
 
 
         //加载可用字体，用英文显示
-        String[] familyNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(Locale.ENGLISH);
+        String[] familyNamesEn = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(Locale.ENGLISH);
+        //本地名称的字体
+        String[] familyNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+
+        //转换为小写
+        for (int i = 0; i < familyNamesEn.length; i++) {
+            familyNamesEn[i] = familyNamesEn[i].toLowerCase();
+        }
+
         //转换为小写
         for (int i = 0; i < familyNames.length; i++) {
             familyNames[i] = familyNames[i].toLowerCase();
         }
         availableFontFamilyNames = new HashSet<String>
                 (Arrays.asList(familyNames));
+        availableFontFamilyNames.addAll(Arrays.asList(familyNamesEn));
     }
 
     public static Font processFont(String font) {
@@ -75,7 +86,8 @@ public class FontAdapter {
                         if (CanvasPainter.hasFont(fontName)) {
                             f = CanvasPainter.getFont(fontName);
                             break;
-                        } else if (availableFontFamilyNames.contains(fontName.toLowerCase())) {
+                        } else if (availableFontFamilyNames.contains(fontName.toLowerCase())
+                                && new Font(fontName, Font.PLAIN, DEFAULT_SIZE).canDisplay(CHINESE)) {
                             name = fontName;
                             break;
                         }

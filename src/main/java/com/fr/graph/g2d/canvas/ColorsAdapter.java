@@ -495,7 +495,7 @@ public class ColorsAdapter {
 
     private static boolean isJsNull(String style) {
 
-        return style == null || "none".equals(style) || "undefined".equals(style);
+        return StringUtils.isEmpty(style) || "none".equals(style) || "undefined".equals(style);
 
     }
 

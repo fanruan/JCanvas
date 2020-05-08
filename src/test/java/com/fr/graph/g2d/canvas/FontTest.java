@@ -3,6 +3,8 @@ package com.fr.graph.g2d.canvas;
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 
@@ -54,6 +56,22 @@ public class FontTest extends TestCase {
     public void testLoadFont() {
         File file = new File(this.getClass().getResource("/font/Helvetica.ttf").getPath());
         CanvasPainter.loadFont("font1", file);
+        String font = "bold italic 29px font1";
+        Font f = FontAdapter.processFont(font);
+        assertEquals("Helvetica", f.getFamily());
+        assertEquals(29, f.getSize());
+        assertEquals(Font.ITALIC | Font.BOLD, f.getStyle());
+    }
+
+    public void testLoadFontByInputStream() {
+        File file = new File(this.getClass().getResource("/font/Helvetica.ttf").getPath());
+        try {
+            InputStream fileInput = new FileInputStream(file);
+            CanvasPainter.loadFont("font1", fileInput);
+            fileInput.close();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
         String font = "bold italic 29px font1";
         Font f = FontAdapter.processFont(font);
         assertEquals("Helvetica", f.getFamily());

@@ -7,7 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
-public class CanvasAdapter {
+public class CanvasAdapter implements ImageProvider {
 
     public static int RESOLUTION = 2; //横纵像素倍数
 
@@ -86,5 +86,15 @@ public class CanvasAdapter {
         if (this.contextAdapter != null) {
             this.contextAdapter.dispose();
         }
+    }
+
+    @Override
+    public BufferedImage getImage() {
+        return this.canvas;
+    }
+
+    @Override
+    public boolean isCanvas() {
+        return true;
     }
 }

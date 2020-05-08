@@ -6,15 +6,10 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.fr.graph.g2d.canvas.CanvasAdapter;
-import com.fr.graph.g2d.canvas.ImageUtils;
-
-import java.util.UUID;
 
 public class V8Canvas extends V8Object {
 
-    private String id;
-
-    public V8Canvas(final V8 v8, final CanvasAdapter canvas) {
+    public V8Canvas(final V8Painter v8Painter, final V8 v8, final CanvasAdapter canvas) {
         super(v8);
         V8Object proto = v8.getObject("NativeCanvasPrototype");
         setPrototype(proto);
@@ -22,7 +17,9 @@ public class V8Canvas extends V8Object {
         registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object receiver, V8Array parameters) {
-                return new V8Context(v8, canvas.getContext());
+                V8Context v8Context = new V8Context(v8Painter, v8, canvas.getContext());
+                v8Context.add("canvas", receiver);
+                return v8Context;
             }
         }, "getContext");
         registerJavaMethod(new JavaVoidCallback() {
@@ -56,7 +53,7 @@ public class V8Canvas extends V8Object {
                     String attribute = parameters.getString(0);
                     if (parameters.get(1) instanceof Double) {
                         canvas.setAttribute(attribute, (int) parameters.getDouble(1));
-                    } else {
+                    } else if (parameters.get(1) instanceof Integer) {
                         canvas.setAttribute(attribute, parameters.getInteger(1));
                     }
                 }
@@ -65,15 +62,7 @@ public class V8Canvas extends V8Object {
         registerJavaMethod(canvas, "getWidth", "getWidth", new Class<?>[]{});
         registerJavaMethod(canvas, "getHeight", "getHeight", new Class<?>[]{});
         registerJavaMethod(canvas, "dispose", "dispose", new Class<?>[]{});
-        //生成id并缓存
-        String id = UUID.randomUUID().toString();
-        this.id = id;
-        add("canvas_id", id);
-        ImageUtils.put(id, canvas);
-    }
 
-    @Override
-    public void finalize() {
-        ImageUtils.remove(id);
+        v8Painter.getImageMap().put(this, canvas);
     }
 }

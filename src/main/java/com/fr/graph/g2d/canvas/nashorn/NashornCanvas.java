@@ -10,6 +10,8 @@ public class NashornCanvas extends CanvasAdapter {
 
     private String innerHTML;
 
+    private String _drawn;
+
 
     public NashornCanvas() {
         super();
@@ -27,12 +29,22 @@ public class NashornCanvas extends CanvasAdapter {
         this.innerHTML = innerHTML;
     }
 
+    public String get_drawn() {
+        return _drawn;
+    }
+
+    public void set_drawn(String _drawn) {
+        this._drawn = _drawn;
+    }
+
     public ContextAdapter getContext(Object... obj) {
         return super.getContext();
     }
 
     @Override
     public ContextAdapter createContextAdapter(Graphics2D context, BufferedImage canvas) {
-        return new NashornContext(context, canvas);
+        NashornContext nashornContext = new NashornContext(context, canvas);
+        nashornContext.setCanvas(this);
+        return nashornContext;
     }
 }
