@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.awt.Color;
 import java.awt.Paint;
+import java.awt.TexturePaint;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
 
 public class ColorsAdapter {
@@ -337,7 +340,7 @@ public class ColorsAdapter {
         }
         int len = color.length();
         int r, g, b, a;
-        try{
+        try {
             if (len == 3) {
                 r = Integer.parseInt(color.substring(0, 1), 16);
                 g = Integer.parseInt(color.substring(1, 2), 16);
@@ -374,7 +377,7 @@ public class ColorsAdapter {
         color = color.substring(off, color.length() - 1);
         String[] colors = color.split(",");
         if (colors.length >= 3) {
-            try{
+            try {
                 double r = parseComponent(colors[0], PARSE_COMPONENT);
                 double g = parseComponent(colors[1], PARSE_COMPONENT);
                 double b = parseComponent(colors[2], PARSE_COMPONENT);
@@ -395,7 +398,7 @@ public class ColorsAdapter {
         color = color.substring(off, color.length() - 1);
         String[] colors = color.split(",");
         if (colors.length >= 3) {
-            try{
+            try {
                 double h = parseComponent(colors[0], PARSE_ANGLE);
                 double s = parseComponent(colors[1], PARSE_PERCENT);
                 double l = parseComponent(colors[2], PARSE_PERCENT);
@@ -485,7 +488,7 @@ public class ColorsAdapter {
         if (isJsNull(style) || AssistUtils.equals(style, JS_OBJECT)) {
             return null;
         }
-        try{
+        try {
             return valueOf(style);
         } catch (Exception ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
@@ -507,8 +510,21 @@ public class ColorsAdapter {
             return LinearGradientAdapter.valueOf(value);
         } else if (value.startsWith("radial-gradient(")) {
             return RadialGradientAdapter.valueOf(value);
+        } else if (value.startsWith("data:")) {
+            return creatTexturePaint(value);
         } else {
             return web(value);
+        }
+    }
+
+    private static TexturePaint creatTexturePaint(String value) {
+        try {
+            String[] split = value.split("&&");
+            BufferedImage image = ImageUtils.createByBase64(split[0]);
+            Rectangle2D rectangle2D = new Rectangle2D.Double(Double.valueOf(split[1]), Double.valueOf(split[2]), image.getWidth(), image.getHeight());
+            return new TexturePaint(image, rectangle2D);
+        } catch (Exception ex) {
+            return null;
         }
     }
 

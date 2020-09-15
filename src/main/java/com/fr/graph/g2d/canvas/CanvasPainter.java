@@ -1,12 +1,13 @@
 package com.fr.graph.g2d.canvas;
 
-import com.eclipsesource.v8.V8;
 import com.fr.general.IOUtils;
 import com.fr.graph.g2d.canvas.j2v8.V8Painter;
 import com.fr.graph.g2d.canvas.nashorn.NashornPainter;
 import com.fr.log.FineLoggerFactory;
 import com.fr.stable.StringUtils;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
@@ -23,9 +24,13 @@ public abstract class CanvasPainter implements Closeable {
 
     public final static boolean SUPPORT_J2V8 = isSupportJ2v8();
 
+    public final static boolean SUPPORT_NASHORN = isSupportNashorn();
+
     private StringBuilder sb = new StringBuilder();
 
     private static ConcurrentHashMap<String, Font> loadedFonts = new ConcurrentHashMap<String, Font>();
+
+    public static final String SCRIPT_ENGINE_NAME = "NashornScriptEngine";
 
     /**
      * 生成用于构建Canvas画板的构建器
@@ -48,21 +53,29 @@ public abstract class CanvasPainter implements Closeable {
     public static Builder newDefaultBuilder() throws Exception {
         if (SUPPORT_J2V8) {
             return new Builder(JsEngineType.J2V8_ENGINE).prepare("/com/fr/graph/g2d/canvas/js/fx-adapter.js");
-        } else {
+        } else if (SUPPORT_NASHORN) {
             return new Builder(JsEngineType.NASHORN_ENGINE).prepare("/com/fr/graph/g2d/canvas/js/nashorn-adapter.js");
         }
-
+        throw new RuntimeException("C library and JDK version do not meet the requirements, " +
+                "Please upgrade GBLIC to 2.17 And GLIBCXX to 3.4.19 or JDK to 1.8");
     }
 
     public static boolean isSupportJ2v8() {
-        V8 v8;
         try {
-            v8 = V8.createV8Runtime();
-        } catch (IllegalStateException ex) {
+            Class<?> v8Class = Class.forName("com.eclipsesource.v8.V8");
+            Object result = v8Class.getMethod("createV8Runtime").invoke(null);
+
+            result.getClass().getMethod("close").invoke(result);
+        } catch (Exception ex) {
             return false;
         }
-        v8.close();
         return true;
+    }
+
+    public static boolean isSupportNashorn() {
+        ScriptEngine javaScript = new ScriptEngineManager().getEngineByName("JavaScript");
+        return javaScript != null &&
+                SCRIPT_ENGINE_NAME.equals(javaScript.getClass().getSimpleName());
     }
 
     public static Font loadFont(String fontName, File file) {
@@ -75,7 +88,7 @@ public abstract class CanvasPainter implements Closeable {
         }
         return font;
     }
-    
+
     public static Font loadFont(String fontName, InputStream inputStream) {
         Font font = null;
         try {

@@ -10,6 +10,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.awt.image.BufferedImage;
 
 /**
@@ -17,8 +22,20 @@ import java.awt.image.BufferedImage;
  */
 public class ImageUtils {
 
+    public static Map<String, BufferedImage> cache;
+
+    private static List<CustomImageProvider> customImageProviders = new ArrayList<CustomImageProvider>();
+
+    static {
+        cache = Collections.synchronizedMap(new WeakHashMap<String, BufferedImage>());
+    }
+
     //10s超时
     private static final int READ_TIME_OUT = 10000;
+
+    public static void registerCustomImageProvider(CustomImageProvider customImageProvider) {
+        customImageProviders.add(customImageProvider);
+    }
 
     public static BufferedImage getOrCreate(String src) {
         BufferedImage image = create(src);
@@ -27,17 +44,31 @@ public class ImageUtils {
 
     public static BufferedImage create(String src) {
         try {
-            return StringUtils.isEmpty(src) ? null : src.startsWith("data:") ? createByBase64(src) : createByUrl(src);
+            if (StringUtils.isEmpty(src)) {
+                return null;
+            }
+            for (CustomImageProvider customImageProvider : customImageProviders) {
+                if (customImageProvider.isCustom(src)) {
+                    return customImageProvider.getImage(src);
+                }
+            }
+            return src.startsWith("data:") ? createByBase64(src) : createByUrl(src);
         } catch (IOException ex) {
             FineLoggerFactory.getLogger().error(ex.getMessage(), ex);
             return null;
         }
     }
 
-    private static BufferedImage createByBase64(String base64) throws IOException {
+    public static BufferedImage createByBase64(String base64) throws IOException {
+        BufferedImage bufferedImage = cache.get(base64);
+        if (bufferedImage != null) {
+            return bufferedImage;
+        }
         String imageData = base64.split("base64,")[1];
         byte[] data = IOUtils.base64Decode(imageData);
-        return ImageIO.read(new ByteArrayInputStream(data));
+        BufferedImage read = ImageIO.read(new ByteArrayInputStream(data));
+        cache.put(base64, read);
+        return read;
     }
 
     public static BufferedImage createByUrl(String strUrl) throws IOException {

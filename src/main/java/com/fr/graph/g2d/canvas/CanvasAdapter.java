@@ -88,6 +88,10 @@ public class CanvasAdapter implements ImageProvider {
         }
     }
 
+    public void reset() {
+
+    }
+
     @Override
     public BufferedImage getImage() {
         return this.canvas;

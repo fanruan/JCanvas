@@ -83,6 +83,7 @@ public class V8Painter extends CanvasPainter {
             CanvasAdapter canvas = new CanvasAdapter();
             V8Canvas v8Canvas = new V8Canvas(this, v8, canvas);
             Object[] newParameters = new Object[parameters.length + 1];
+            BufferedImage image;
             try {
                 newParameters[0] = v8Canvas;
                 System.arraycopy(parameters, 0, newParameters, 1, parameters.length);
@@ -90,12 +91,11 @@ public class V8Painter extends CanvasPainter {
                 if (result instanceof V8Object) {
                     ((V8Object) result).release();
                 }
+                image = canvas.getImage();
             } finally {
                 clear();
                 v8Canvas.release();
             }
-            BufferedImage image = canvas.getCanvas();
-            canvas.dispose();
             return image;
         } finally {
             release();
@@ -112,6 +112,7 @@ public class V8Painter extends CanvasPainter {
         acquire();
         try {
             V8Canvas v8Canvas = new V8Canvas(this, v8, canvas);
+            imageMap.remove(v8Canvas);
             v8.add("canvas", v8Canvas);
             v8Canvas.release();
         } finally {
@@ -142,6 +143,9 @@ public class V8Painter extends CanvasPainter {
     }
 
     private void clear() {
+        for (ImageProvider image : imageMap.values()) {
+            image.dispose();
+        }
         imageMap.clear();
     }
 }

@@ -4,7 +4,9 @@ import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8ArrayBuffer;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8TypedArray;
 import com.eclipsesource.v8.V8Value;
 import com.fr.graph.g2d.canvas.CanvasAdapter;
 import com.fr.graph.g2d.canvas.CanvasUtils;
@@ -21,6 +23,7 @@ import java.awt.Color;
 import java.awt.LinearGradientPaint;
 import java.awt.Paint;
 import java.awt.RadialGradientPaint;
+import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
 
 public class V8Context extends V8Object {
@@ -118,6 +121,9 @@ public class V8Context extends V8Object {
                     double r = parameters.getDouble(2);
                     double startAngle = parameters.getDouble(3);
                     double endAngle = parameters.getDouble(4);
+                    if (Double.isNaN(cx) || Double.isNaN(cy) || Double.isNaN(r) || Double.isNaN(startAngle) || Double.isNaN(endAngle)) {
+                        return;
+                    }
                     boolean anticlockwise = false;
                     if (parameters.length() > 5) {
                         int type = parameters.getType(5);
@@ -155,10 +161,7 @@ public class V8Context extends V8Object {
                         }
                     }
                     V8Object dimen = new V8Object(v8);
-                    dimen.registerJavaMethod(textMetrics, "getWidth", "getWidth", new Class[]{});
-                    V8Object proto = v8.getObject("NativeTextMetricsPrototype");
-                    dimen.setPrototype(proto);
-                    proto.release();
+                    dimen.add("width", textMetrics.getWidth());
                     return dimen;
                 } else {
                     throw new IllegalArgumentException("Failed to execute 'createLinearGradient': 4 arguments required, but only "
@@ -166,6 +169,25 @@ public class V8Context extends V8Object {
                 }
             }
         }, "measureText");
+
+        registerJavaMethod(new JavaCallback() {
+            @Override
+            public Object invoke(V8Object receiver, V8Array parameters) {
+                if (parameters.length() > 0) {
+                    V8Object object = parameters.getObject(0);
+                    String imageUrl = object.getString("imageUrl");
+                    double transX = object.getDouble("transX");
+                    double transY = object.getDouble("transY");
+                    String pattern = context.createPattern(transX, transY, imageUrl);
+                    object.close();
+                    return pattern;
+                } else {
+                    throw new IllegalArgumentException("Failed to execute 'createPattern': 1 arguments required, but only "
+                            + parameters.length() + " present.");
+                }
+            }
+
+        }, "createPattern");
 
         registerJavaMethod(new JavaCallback() {
             @Override
@@ -240,6 +262,12 @@ public class V8Context extends V8Object {
                     } else {
                         fillPaint = context.getFillPaint();
                     }
+                    if (fillPaint instanceof TexturePaint) {
+                        if (paint instanceof V8Object) {
+                            return receiver.get("_fillStyle");
+                        }
+                        return paint;
+                    }
                     return paint2JSObject(fillPaint);
                 } else {
                     throw new IllegalArgumentException("Failed to execute 'setFillStyle': 1 arguments required, but only "
@@ -312,13 +340,16 @@ public class V8Context extends V8Object {
                     int y = parameters.getInteger(2);
                     int width = imageData.getInteger("width");
                     int height = imageData.getInteger("height");
-                    V8Array v8Data = imageData.getArray("data");
-                    imageData.release();
-                    int[] data = new int[v8Data.length()];
-                    for (int i = 0; i < v8Data.length(); i++) {
-                        data[i] = v8Data.getInteger(i);
+                    V8TypedArray v8TypedArray = (V8TypedArray) imageData.getArray("data");
+                    imageData.close();
+                    V8ArrayBuffer buffer = v8TypedArray.getBuffer();
+                    int len = buffer.limit() >> 2;
+                    int[] data = new int[len];
+                    for (int i = 0; i < len; i++) {
+                        data[i] = buffer.getInt();
                     }
-                    v8Data.release();
+                    v8TypedArray.close();
+                    buffer.close();
                     ImageData img = new ImageData(width, height, data);
                     if (parameters.length() > 6) {
                         int dirtyX = parameters.getInteger(3);
@@ -354,11 +385,12 @@ public class V8Context extends V8Object {
                     if (imageProvider != null) {
                         canvas = imageProvider.isCanvas();
                         image = imageProvider.getImage();
-                        imageProvider.dispose();
+                        imageProvider.reset();
                         v8Object.release();
                     } else {
-                        v8Object.release();
-                        throw new IllegalArgumentException("The provided value must be Canvas Object or srcUrl");
+                        return;
+                        //v8Object.release();
+                        //throw new IllegalArgumentException("The provided value must be Canvas Object or srcUrl");
                     }
                 } else {
                     String url = (String) imageObj;

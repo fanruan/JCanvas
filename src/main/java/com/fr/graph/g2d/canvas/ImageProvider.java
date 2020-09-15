@@ -17,5 +17,13 @@ public interface ImageProvider {
 
     boolean isCanvas();
 
+    /**
+     * 调用完drawImage之后的动作
+     */
+    void reset();
+
+    /**
+     * 绘制结束之后的动作
+     */
     void dispose();
 }

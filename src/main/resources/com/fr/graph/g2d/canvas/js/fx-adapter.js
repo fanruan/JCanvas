@@ -4,6 +4,7 @@ function do_nothing() {
 
 setTimeout = clearTimeout = setInterval = clearInterval = do_nothing;
 
+javaVirtualJsEngine = true;
 
 var window = {
     devicePixelRatio: 1,
@@ -29,6 +30,7 @@ NativeCanvasPrototype = {
     }, get height() {
         return this.getHeight();
     },
+    constructor: Canvas
 };
 
 NativeContextPrototype = {
@@ -87,7 +89,7 @@ NativeContextPrototype = {
     get miterLimit() {
         return this._miterLimit;
     },
-    _globalAlpha: 0,
+    _globalAlpha: 1,
     set globalAlpha(v) {
         this._globalAlpha = this.setGlobalAlpha(v);
     },
@@ -103,23 +105,13 @@ NativeContextPrototype = {
     },
 };
 
-
-NativeImageDataPrototype = {
-    _width: 0,
-    set width(v) {
-    }, get width() {
-        return _width = this.getWidth();
+NativeImagePrototype = {
+    _src: '',
+    set src(v) {
+        this.setSrc(v);
+        this._src = v;
+    }, get src() {
+        return this._src;
     },
-    _height: 0,
-    set height(v) {
-    }, get height() {
-        return _height = this.getHeight();
-    },
-};
-
-NativeTextMetricsPrototype = {
-    set width(v) {
-    }, get width() {
-        return this.getWidth();
-    }
+    constructor: Image
 };

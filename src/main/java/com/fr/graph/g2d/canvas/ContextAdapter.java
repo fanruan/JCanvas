@@ -5,7 +5,9 @@ import com.fr.stable.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -24,6 +26,8 @@ import java.awt.image.BufferedImage;
 public class ContextAdapter {
 
     public static final int MISMATCH = -1;
+
+    public static final String DEFAULT_FONT = "Dialog";
 
     protected Graphics2D context;
 
@@ -46,7 +50,6 @@ public class ContextAdapter {
     private float[] coords = new float[6];
 
     private Color SHADOW = new Color(0, 0, 0, 64);
-
 
     public ContextAdapter(Graphics2D context, BufferedImage canvas) {
         init(context, canvas);
@@ -102,6 +105,10 @@ public class ContextAdapter {
                 strokePaint = paint;
             }
         }
+    }
+
+    public String createPattern(double x, double y, String base64) {
+        return base64 + "&&" + x + "&&" + y;
     }
 
     public LinearGradientAdapter createLinearGradient(float x0, float y0, float x1, float y1) {
@@ -387,10 +394,9 @@ public class ContextAdapter {
     }
 
     public void setLineDash(float[] dash) {
-        if (dash.length > 0) {
-            BasicStroke stroke = (BasicStroke) context.getStroke();
-            context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), dash, 0));
-        }
+        dash = dash.length > 0 ? dash : null;
+        BasicStroke stroke = (BasicStroke) context.getStroke();
+        context.setStroke(new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), dash, 0));
     }
 
     public void scale(double x, double y) {
@@ -419,11 +425,19 @@ public class ContextAdapter {
     }
 
     public String setFont(String font) {
+        if (context == null) {
+            initGraphics();
+        }
+
         if (!StringUtils.isEmpty(font)) {
             context.setFont(FontAdapter.processFont(font));
         }
         Font fontState = context.getFont();
         return FontAdapter.font2String(fontState);
+    }
+
+    private void initGraphics() {
+        this.context = new CanvasAdapter().getContext().context;
     }
 
     public String setTextAlign(String textAlign) {
@@ -443,22 +457,60 @@ public class ContextAdapter {
     }
 
     public void fillText(String text, double x, double y) {
-        context.setPaint(SHADOW);
-        drawText(text, (float) x, (float) y, true);
+        Map<String, Boolean> textMap = distinctText(text);
+        if (fillPaint instanceof Color && ((Color) fillPaint).getAlpha() == 255) {
+            context.setPaint(SHADOW);
+            drawTextWithTextAttr(text, textMap, (float) x, (float) y, true);
+        }
         beforeFill();
-        drawText(text, (float) x, (float) y, true);
+        drawTextWithTextAttr(text, textMap, (float) x, (float) y, true);
     }
 
     public void strokeText(String text, double x, double y) {
+        Map<String, Boolean> textMap = distinctText(text);
         beforeStroke();
-        drawText(text, (float) x, (float) y, false);
+        drawTextWithTextAttr(text, textMap, (float) x, (float) y, false);
+    }
+
+    //将原始字体可以绘制的字符串和不可以绘制的字符串分开
+    private Map<String, Boolean> distinctText(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return new LinkedHashMap<String, Boolean>();
+        }
+        Map<String, Boolean> textMap = new LinkedHashMap<String, Boolean>();
+        int begin = 0;
+        int len = text.length();
+        Font originalFont = context.getFont();
+        boolean canDisplay = originalFont.canDisplay(text.charAt(0));
+        for (int i = 1; i < len; i++) {
+            //和上个字符的属性一样，继续循环
+            if (canDisplay == originalFont.canDisplay(text.charAt(i))) {
+                continue;
+            } else {
+                //和上个字符属性不一样，将之前连续同属性的字符串截取
+                textMap.put(text.substring(begin, i), canDisplay);
+                begin = i;
+                canDisplay = !canDisplay;
+            }
+        }
+        textMap.put(text.substring(begin, len), canDisplay);
+        return textMap;
+    }
+
+    //对于原始字体可以绘制出来的和绘制不出来的，进行分开绘制
+    private void drawTextWithTextAttr(String text, Map<String, Boolean> textMap, float x, float y, boolean isFill) {
+        Font originalFont = context.getFont();
+        Font defaultFont = new Font(DEFAULT_FONT, originalFont.getStyle(), originalFont.getSize());
+        x = calAlign(text, x);
+        for (Map.Entry<String, Boolean> entry : textMap.entrySet()) {
+            context.setFont(entry.getValue() ? originalFont : defaultFont);
+            drawText(entry.getKey(), x, y, isFill);
+            x += context.getFontMetrics().stringWidth(entry.getKey());
+        }
+        context.setFont(originalFont);
     }
 
     private void drawText(String text, float x, float y, boolean isFill) {
-        if (StringUtils.isEmpty(text)) {
-            return;
-        }
-        x = calAlign(text, x);
         y = calBaseline(y);
         //CHART-9274 解决汉字和.组合时候导致所有的.均绘制不出来的问题。
         boolean hasPoint = text.indexOf(".") > 0;
@@ -500,16 +552,17 @@ public class ContextAdapter {
     }
 
     private float calBaseline(float y) {
-        int size = context.getFont().getSize();
+        float ascent = context.getFontMetrics().getAscent();
+        float descent = context.getFontMetrics().getDescent();
         switch (textBaseline) {
             case TOP:
-                y += size / 4 * 3;
+                y += ascent / 4 * 3;
                 break;
             case BOTTOM:
-                y -= size / 4;
+                y -= descent;
                 break;
             case CENTER:
-                y += size / 8 * 3;
+                y += (ascent - descent) / 2;
             default:
                 break;
         }
@@ -517,8 +570,20 @@ public class ContextAdapter {
     }
 
     public TextMetrics measureText(String text) {
+        if (context == null) {
+            initGraphics();
+        }
         if (!StringUtils.isEmpty(text)) {
-            return new TextMetrics(context.getFontMetrics().stringWidth(text));
+            int width = 0;
+            Map<String, Boolean> textMap = distinctText(text);
+            Font originalFont = context.getFont();
+            Font defaultFont = new Font(DEFAULT_FONT, originalFont.getStyle(), originalFont.getSize());
+            for (Map.Entry<String, Boolean> entry : textMap.entrySet()) {
+                context.setFont(entry.getValue() ? originalFont : defaultFont);
+                width += context.getFontMetrics().stringWidth(entry.getKey());
+            }
+            context.setFont(originalFont);
+            return new TextMetrics(width);
         }
         return new TextMetrics(0);
     }
@@ -573,6 +638,10 @@ public class ContextAdapter {
         if (sHeight < 0) {
             sy = sy + sHeight;
             sHeight = -sHeight;
+        }
+        if (sx == 0 && sy == 0 && sWidth * resolution == img.getWidth() && sHeight * resolution == img.getHeight()) {
+            drawImage(img, x, y, width, height);
+            return;
         }
         ImageData imageData;
 
@@ -645,7 +714,6 @@ public class ContextAdapter {
         context.dispose();
         context = null;
         canvas = null;
-
     }
 
     private ImageData getImageData(BufferedImage img, int x, int y, int width, int height) {

@@ -1,0 +1,28 @@
+apply plugin: 'java'
+
+group = 'com.fanruan.chart'
+version = '1.0'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri('http://maven.aliyun.com/nexus/content/groups/public/')
+    }
+    maven {
+        url = uri('http://repo.maven.apache.org/maven2')
+    }
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:23.0'
+    implementation 'com.eclipsesource.j2v8:j2v8:5.0.100'
+    implementation 'com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0'
+    implementation 'com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0'
+    implementation 'com.eclipsesource.j2v8:j2v8_macosx_x86_64:4.6.0'
+
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+
+    testImplementation 'junit:junit:4.12'
+}

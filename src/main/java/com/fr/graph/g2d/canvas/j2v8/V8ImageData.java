@@ -1,24 +1,28 @@
 package com.fr.graph.g2d.canvas.j2v8;
 
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8ArrayBuffer;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8TypedArray;
+import com.eclipsesource.v8.V8Value;
 import com.fr.graph.g2d.canvas.ImageData;
 
 public class V8ImageData extends V8Object {
 
     public V8ImageData(final V8 v8, final ImageData imageData) {
         super(v8);
-        V8Object proto = v8.getObject("NativeImageDataPrototype");
-        setPrototype(proto);
-        proto.release();
-        V8Array v8Array = new V8Array(v8);
-        for (int i : imageData.getData()) {
-            v8Array.push(i);
+        int[] data = imageData.getData();
+        V8ArrayBuffer v8ArrayBuffer = new V8ArrayBuffer(v8, data.length << 2);
+        for (int i : data) {
+            v8ArrayBuffer.putInt(i);
         }
-        add("data", v8Array);
-        v8Array.release();
-        registerJavaMethod(imageData, "getWidth", "getWidth", new Class[]{});
-        registerJavaMethod(imageData, "getHeight", "getHeight", new Class[]{});
+        V8TypedArray v8TypedArray = new V8TypedArray(v8, v8ArrayBuffer, V8Value.INTEGER, 0, data.length);
+
+        add("data", v8TypedArray);
+        v8ArrayBuffer.close();
+        v8TypedArray.close();
+
+        add("width", imageData.getWidth());
+        add("height", imageData.getHeight());
     }
 }

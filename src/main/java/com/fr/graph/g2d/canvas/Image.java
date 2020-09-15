@@ -36,6 +36,10 @@ public class Image implements ImageProvider {
         return false;
     }
 
+    public void reset() {
+        bufferedImage = null;
+    }
+
     public void dispose() {
         bufferedImage = null;
     }

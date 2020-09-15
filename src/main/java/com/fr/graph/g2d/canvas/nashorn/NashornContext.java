@@ -115,17 +115,14 @@ public class NashornContext extends ContextAdapter {
         scale(1.0 / CanvasAdapter.RESOLUTION, 1.0 / CanvasAdapter.RESOLUTION);
         drawImage(img.getCanvas(), x * CanvasAdapter.RESOLUTION, y * CanvasAdapter.RESOLUTION);
         scale(CanvasAdapter.RESOLUTION, CanvasAdapter.RESOLUTION);
-        img.dispose();
     }
 
     public void drawImage(CanvasAdapter img, int x, int y, int width, int height) {
         drawImage(img.getCanvas(), x, y, width, height);
-        img.dispose();
     }
 
     public void drawImage(CanvasAdapter img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height) {
         drawImage(img.getCanvas(), sx, sy, sWidth, sHeight, x, y, width, height, CanvasAdapter.RESOLUTION);
-        img.dispose();
     }
 
     public void drawImage(String url, int x, int y) {
@@ -142,16 +139,16 @@ public class NashornContext extends ContextAdapter {
 
     public void drawImage(NashornImage img, int x, int y) {
         drawImage(img.getImage(), x, y);
-        img.dispose();
+        img.reset();
     }
 
     public void drawImage(NashornImage img, int x, int y, int width, int height) {
         drawImage(img.getImage(), x, y, width, height);
-        img.dispose();
+        img.reset();
     }
 
     public void drawImage(NashornImage img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height) {
         drawImage(img.getImage(), sx, sy, sWidth, sHeight, x, y, width, height, 1);
-        img.dispose();
+        img.reset();
     }
 }

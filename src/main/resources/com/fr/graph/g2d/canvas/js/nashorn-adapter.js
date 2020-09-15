@@ -1,4 +1,7 @@
 var Canvas = Java.type("com.fr.graph.g2d.canvas.nashorn.NashornCanvas");
+var Image = Java.type("com.fr.graph.g2d.canvas.nashorn.NashornImage");
+
+javaVirtualJsEngine = true;
 
 function do_nothing() {
 
@@ -19,4 +22,3 @@ var window = {
 var console = {
     log: do_nothing
 };
-

@@ -3,23 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.fr.chart</groupId>
+    <groupId>com.fanruan.chart</groupId>
     <artifactId>jcanvas</artifactId>
     <version>1.0</version>
-    <build>
-        <outputDirectory>target/classes</outputDirectory>
-        <testOutputDirectory>target/classes</testOutputDirectory>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>6</source>
-                    <target>6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -29,7 +15,7 @@
         <dependency>
             <groupId>com.eclipsesource.j2v8</groupId>
             <artifactId>j2v8</artifactId>
-            <version>4.6.0</version>
+            <version>5.0.100</version>
         </dependency>
         <dependency>
             <groupId>com.eclipsesource.j2v8</groupId>
@@ -58,4 +44,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

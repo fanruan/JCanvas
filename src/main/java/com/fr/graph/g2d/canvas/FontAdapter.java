@@ -28,8 +28,6 @@ public class FontAdapter {
 
     public static Set<String> availableFontFamilyNames;
 
-    public static final char CHINESE = '测';
-
     static {
         fontStyle = new HashMap<String, Integer>();
         fontStyle.put(BOLD, new Integer(Font.BOLD));
@@ -82,12 +80,12 @@ public class FontAdapter {
                     }
                     String[] fontNames = s.delete(s.length() - 1, s.length()).toString().split(",");
                     for (String fontName : fontNames) {
+                        fontName = fontName.trim();
                         //手动加载的字体
                         if (CanvasPainter.hasFont(fontName)) {
                             f = CanvasPainter.getFont(fontName);
                             break;
-                        } else if (availableFontFamilyNames.contains(fontName.toLowerCase())
-                                && new Font(fontName, Font.PLAIN, DEFAULT_SIZE).canDisplay(CHINESE)) {
+                        } else if (availableFontFamilyNames.contains(fontName.toLowerCase())) {
                             name = fontName;
                             break;
                         }
